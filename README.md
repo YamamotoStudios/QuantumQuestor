@@ -1,6 +1,4 @@
-Here's a markdown-formatted `README.md` file tailored to your project, considering the recent changes and progress:
 
-```markdown
 # Quantum Questor: Keyword and Article Generation System
 
 Welcome to the **Quantum Questor** repository! This project is the heart of an automated keyword and content generation system designed to support the **Quantum Questor** website. The goal is to efficiently generate trend-reactive keywords and articles tailored to gaming, technology, and lifestyle topics.
@@ -148,5 +146,3 @@ For inquiries or support, please email **contact@quantumquestor.com** or visit o
 
 ### ⭐ If you find this project useful, please consider starring this repository!
 ```
-
-This `README.md` is tailored for your use case, emphasizing clarity and providing a professional, comprehensive overview of your repository. Let me know if you’d like to tweak any section!
