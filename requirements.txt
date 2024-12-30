@@ -1,3 +1,5 @@
 trendspy
 pandas
 supabase
+requests[socks]
+sentence-transformers

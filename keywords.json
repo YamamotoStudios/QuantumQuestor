@@ -1,0 +1,112 @@
+[
+  {
+    "text": "design and technology",
+    "volume": 8100,
+    "competition_level": "LOW",
+    "competition_index": 1,
+    "low_bid": 0.58415,
+    "high_bid": 3.618635,
+    "trend": 10.94,
+    "similarity": 0.6812664270401001,
+    "score": 2.66569649892807
+  },
+  {
+    "text": "business information technology",
+    "volume": 5400,
+    "competition_level": "LOW",
+    "competition_index": 8,
+    "low_bid": 0.445507,
+    "high_bid": 5.34,
+    "trend": 5.04,
+    "similarity": 0.610493540763855,
+    "score": 1.4358854785346984
+  },
+  {
+    "text": "information and communication technology",
+    "volume": 40500,
+    "competition_level": "LOW",
+    "competition_index": 1,
+    "low_bid": 0.440306,
+    "high_bid": 8.24,
+    "trend": 3.59,
+    "similarity": 0.6704028844833374,
+    "score": 1.1913320191383363
+  },
+  {
+    "text": "xbox cloud gaming",
+    "volume": 2740000,
+    "competition_level": "LOW",
+    "competition_index": 1,
+    "low_bid": 0.01,
+    "high_bid": 0.12,
+    "trend": 2.29,
+    "similarity": 0.5953613519668579,
+    "score": 0.9747529463768004
+  },
+  {
+    "text": "types of technology",
+    "volume": 14800,
+    "competition_level": "LOW",
+    "competition_index": 0,
+    "low_bid": 0.071759,
+    "high_bid": 2.0,
+    "trend": 2.23,
+    "similarity": 0.6878125667572021,
+    "score": 0.9289487967300415
+  },
+  {
+    "text": "tech for good",
+    "volume": 5400,
+    "competition_level": "LOW",
+    "competition_index": 3,
+    "low_bid": 2.517518,
+    "high_bid": 5.808447,
+    "trend": 2.27,
+    "similarity": 0.6039489507675171,
+    "score": 0.8773042655372619
+  },
+  {
+    "text": "games to play",
+    "volume": 1000000,
+    "competition_level": "LOW",
+    "competition_index": 29,
+    "low_bid": 0.012514,
+    "high_bid": 0.617898,
+    "trend": 1.07,
+    "similarity": 0.7337509393692017,
+    "score": 0.8276256575584412
+  },
+  {
+    "text": "science and technology",
+    "volume": 110000,
+    "competition_level": "LOW",
+    "competition_index": 1,
+    "low_bid": 0.140169,
+    "high_bid": 2.86,
+    "trend": 0.77,
+    "similarity": 0.7536215782165527,
+    "score": 0.7815351047515868
+  },
+  {
+    "text": "information communication technology",
+    "volume": 12100,
+    "competition_level": "LOW",
+    "competition_index": 1,
+    "low_bid": 0.811345,
+    "high_bid": 6.17,
+    "trend": 1.47,
+    "similarity": 0.6143561601638794,
+    "score": 0.7252593121147156
+  },
+  {
+    "text": "it information technology",
+    "volume": 368000,
+    "competition_level": "LOW",
+    "competition_index": 8,
+    "low_bid": 0.31498,
+    "high_bid": 12.59,
+    "trend": 0.74,
+    "similarity": 0.6590366959571838,
+    "score": 0.6461256871700287
+  }
+]
