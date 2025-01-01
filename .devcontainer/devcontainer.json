@@ -19,5 +19,5 @@
       }
     }
   },
-  "postCreateCommand": "pip install --upgrade pip"
+  "postCreateCommand": "pip install --upgrade pip && python .devcontainer/load_env.py"
 }

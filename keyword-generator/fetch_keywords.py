@@ -1,42 +1,18 @@
-import requests
+import psycopg2
+from datetime import datetime, timedelta
 import json
 from sentence_transformers import SentenceTransformer, util
 import time
 from concurrent.futures import ThreadPoolExecutor
+import os
 
 # API and configuration
-RAPIDAPI_KEY = "e42e36094amsh106deea428ceb26p1c5311jsnb0be3386e7c0"
-RAPIDAPI_HOST = "google-keyword-insight1.p.rapidapi.com"
-OUTPUT_FILE = "keywords.json"
+RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
+RAPIDAPI_HOST = os.getenv("RAPIDAPI_HOST")
+CACHE_EXPIRATION_HOURS = 24
 
-# Configuration
-SEED_KEYWORDS = [
-    "Samsung 57-inch G95NC gaming monitor review",
-    "Nvidia RTX 4090 performance benchmarks",
-    "Baldur's Gate 3 gameplay strategies",
-    "Louqe Ghost S1 small form factor build guide",
-    "Quantum computing impact on gaming",
-    "Best gaming laptops for 2024",
-    "Cloud gaming platforms comparison",
-    "Indie games worth playing in 2024",
-    "Top gaming headsets with spatial audio",
-    "Graphics cards for 4K gaming",
-    "AI in gaming: future trends",
-    "Latest gaming mouse reviews",
-    "Cyberpunk 2077 mods and updates",
-    "Portable monitors for gaming on the go",
-    "Steam Deck game compatibility tips",
-    "Building a budget gaming PC in 2024",
-    "Gaming chairs with ergonomic features",
-    "Top-rated mechanical keyboards for gaming",
-    "How to optimize GPU performance for gaming",
-    "Role-playing games with co-op modes"
-]
-LOCATION = "GB"
-LANGUAGE = "en"
-BLACKLIST = ["game", "games", "technology", "news", "trends"]
-INTENT_PATTERNS = ["how to", "best", "top",
-                   "reviews", "comparison", "latest", "deals"]
+# Database connection details
+DB_CONNECTION_STRING = os.getenv("DB_CONNECTION_STRING")
 
 # Load the SentenceTransformer model
 print("Loading SentenceTransformer model...")
@@ -47,152 +23,152 @@ print(f"Model loaded in {time.time() - start_time:.2f} seconds.")
 # Helper functions
 
 
-def fetch_keywords(endpoint, params):
-    url = f"https://{RAPIDAPI_HOST}/{endpoint}"
+def fetch_keywords_from_api(endpoint, params):
+    url = f"https://{RAPIDAPI_HOST}/{endpoint}/"
     headers = {
         "x-rapidapi-host": RAPIDAPI_HOST,
         "x-rapidapi-key": RAPIDAPI_KEY,
     }
-    response = requests.get(url, headers=headers, params=params)
-    response.raise_for_status()
-    return response.json()
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+        data = response.json()
+        if isinstance(data, dict):
+            data = [data]
+        return data
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching data from {endpoint}: {e}")
+        return []
 
 
-def calculate_similarity_batch(seed_keywords, texts):
-    seed_embeddings = model.encode(seed_keywords, convert_to_tensor=True)
-    text_embeddings = model.encode(texts, convert_to_tensor=True)
-    cosine_scores = util.cos_sim(seed_embeddings, text_embeddings)
-    max_scores = cosine_scores.max(dim=0).values.cpu().tolist()
-    return max_scores
+def cache_raw_keywords(conn, raw_keywords):
+    """Cache raw keywords in the database."""
+    with conn.cursor() as cur:
+        for keyword in raw_keywords:
+            cur.execute("""
+                INSERT INTO raw_keywords (text, volume, competition_level, trend, created_at)
+                VALUES (%s, %s, %s, %s, %s)
+                ON CONFLICT (text) DO NOTHING
+            """, (keyword["text"], keyword.get("volume", 0),
+                  keyword.get("competition_level", ""), keyword.get("trend", 0.0), datetime.utcnow()))
+        conn.commit()
 
 
-def is_too_generic(keyword, seed_keywords, other_keywords, similarity_threshold=0.8):
-    """
-    Check if a keyword is overly generic:
-    1. High similarity to all seed keywords.
-    2. High pairwise similarity to other shortlisted keywords.
-    """
-    keyword_embedding = model.encode(keyword, convert_to_tensor=True)
-    seed_embeddings = model.encode(seed_keywords, convert_to_tensor=True)
-    other_embeddings = model.encode(other_keywords, convert_to_tensor=True)
+def fetch_cached_keywords(conn):
+    """Fetch cached raw keywords that haven't expired."""
+    expiration_time = datetime.utcnow() - timedelta(hours=CACHE_EXPIRATION_HOURS)
+    with conn.cursor() as cur:
+        cur.execute("""
+            SELECT text, volume, competition_level, trend, created_at
+            FROM raw_keywords
+            WHERE created_at >= %s
+        """, (expiration_time,))
+        return [
+            {"text": row[0], "volume": row[1],
+                "competition_level": row[2], "trend": row[3]}
+            for row in cur.fetchall()
+        ]
 
-    # Similarity to seed keywords
-    seed_similarity = util.cos_sim(
-        keyword_embedding, seed_embeddings).mean().item()
-    if seed_similarity > similarity_threshold:
-        return True
 
-    # Pairwise similarity to other keywords
-    if other_keywords:
-        pairwise_similarity = util.cos_sim(
-            keyword_embedding, other_embeddings).mean().item()
-        if pairwise_similarity > similarity_threshold:
-            return True
-
-    return False
+def save_filtered_keywords(conn, filtered_keywords):
+    """Save filtered keywords to the database."""
+    with conn.cursor() as cur:
+        for keyword in filtered_keywords:
+            cur.execute("""
+                INSERT INTO filtered_keywords (text, similarity, score, created_at)
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT (text) DO NOTHING
+            """, (keyword["text"], keyword["similarity"], keyword["score"], datetime.utcnow()))
+        conn.commit()
 
 
 def fetch_and_analyze_keywords():
-    all_keywords = []
-    max_volume = 0  # Track max volume for weighting
-    total_start_time = time.time()
+    # Connect to the database
+    conn = psycopg2.connect(DB_CONNECTION_STRING)
 
-    def fetch_data_for_seed(seed):
-        try:
-            keysuggest_data = fetch_keywords(
-                "keysuggest", {"keyword": seed, "location": LOCATION, "lang": LANGUAGE})
-            globalkey_data = fetch_keywords(
-                "globalkey", {"keyword": seed, "lang": LANGUAGE})
-            topkeys_data = fetch_keywords(
-                "topkeys", {"keyword": seed, "location": LOCATION, "lang": LANGUAGE})
-            return keysuggest_data + globalkey_data + topkeys_data
-        except Exception as e:
-            print(f"Error fetching data for seed '{seed}': {e}")
-            return []
+    try:
+        # Check for cached data
+        cached_keywords = fetch_cached_keywords(conn)
+        if cached_keywords:
+            print("Using cached keywords...")
+            combined_data = cached_keywords
+        else:
+            combined_data = []
+            print("Fetching data concurrently for all seed keywords...")
 
-    # Fetch data concurrently
-    print("Fetching data concurrently for all seed keywords...")
-    with ThreadPoolExecutor() as executor:
-        combined_data_lists = list(executor.map(
-            fetch_data_for_seed, SEED_KEYWORDS))
+            # Fetch seed keywords from the database
+            with conn.cursor() as cur:
+                cur.execute("SELECT keyword FROM seed_keywords")
+                seed_keywords = [row[0] for row in cur.fetchall()]
 
-    # Flatten combined data
-    combined_data = [
-        item for sublist in combined_data_lists for item in sublist]
-    print(f"Fetched {len(combined_data)} total keywords.")
+            def fetch_data_for_seed(seed):
+                try:
+                    keysuggest_data = fetch_keywords_from_api(
+                        "keysuggest", {"keyword": seed, "location": "GB", "lang": "en"})
+                    globalkey_data = fetch_keywords_from_api(
+                        "globalkey", {"keyword": seed, "lang": "en"})
+                    topkeys_data = fetch_keywords_from_api(
+                        "topkeys", {"keyword": seed, "location": "GB", "lang": "en"})
 
-    # Filter before similarity analysis
-    filtered_data = [
-        item for item in combined_data
-        if (
-            item.get("volume", 0) > 1000 and
-            item.get("competition_level", "").lower() == "low" and
-            item.get("trend", 0) > 0 and
-            len(item.get("text", "").split()) > 2 and
-            item.get("text", "").lower() not in BLACKLIST
-        )
-    ]
-    print(f"{len(filtered_data)} keywords passed initial filters.")
+                    combined_data = []
+                    for data in (keysuggest_data, globalkey_data, topkeys_data):
+                        if isinstance(data, list):
+                            combined_data.extend(data)
+                        elif isinstance(data, dict):
+                            combined_data.append(data)
 
-    # Semantic similarity analysis
-    texts = [item["text"] for item in filtered_data]
-    print("Starting semantic similarity analysis...")
-    similarities = calculate_similarity_batch(SEED_KEYWORDS, texts)
+                    print(f"Success fetching data for seed '{seed}'")
+                    return combined_data
+                except Exception as e:
+                    print(f"Error fetching data for seed '{seed}': {e}")
+                    return []
 
-    # Add similarity scores
-    shortlisted_keywords = []
-    for idx, (item, similarity) in enumerate(zip(filtered_data, similarities), 1):
-        keyword_text = item.get("text", "")
-        item.update({"similarity": similarity})
+            with ThreadPoolExecutor() as executor:
+                combined_data_lists = list(executor.map(
+                    fetch_data_for_seed, seed_keywords))
+                combined_data = [
+                    item for sublist in combined_data_lists for item in sublist
+                ]
 
-        # Reject overly generic keywords
-        if is_too_generic(keyword_text, SEED_KEYWORDS, shortlisted_keywords):
-            print(f"Rejected generic keyword: {keyword_text}")
-            continue
+            print(f"Fetched {len(combined_data)} total keywords.")
+            cache_raw_keywords(conn, combined_data)
 
-        shortlisted_keywords.append(keyword_text)
-        all_keywords.append(item)
+        # Filter and process data
+        filtered_data = [
+            item for item in combined_data
+            if (
+                item.get("volume", 0) > 100 and
+                item.get("competition_level", "").lower() in ["low", "medium"] and
+                item.get("trend", 0) >= 0 and
+                len(item.get("text", "").split()) >= 2
+            )
+        ]
+        print(f"{len(filtered_data)} keywords passed initial filters.")
 
-        # Show progress
-        progress = (idx / len(filtered_data)) * 100
-        print(
-            f"Processed {idx}/{len(filtered_data)} keywords ({progress:.2f}%).")
+        if not filtered_data:
+            print("No keywords passed the filters. Adjust thresholds or input data.")
+            return
 
-    # Remove duplicates based on keyword text
-    print("Removing duplicates...")
-    unique_keywords = {kw["text"]: kw for kw in all_keywords}.values()
+        # Semantic similarity analysis
+        texts = [item["text"] for item in filtered_data]
+        print("Starting semantic similarity analysis...")
+        similarities = calculate_similarity_batch(seed_keywords, texts)
 
-    # Sort by similarity and take the top 10
-    print("Selecting top 10 keywords by similarity...")
-    top_keywords = sorted(
-        unique_keywords, key=lambda x: x["similarity"], reverse=True)[:10]
+        # Add similarity scores and calculate final scores
+        max_volume = max(item["volume"] for item in filtered_data)
+        for item, similarity in zip(filtered_data, similarities):
+            volume = item["volume"]
+            trend = item["trend"]
+            item["similarity"] = similarity
+            item["score"] = 0.7 * similarity + 0.2 * \
+                trend + 0.1 * (volume / max_volume)
 
-    # Further refine top keywords with scoring
-    print("Scoring top keywords...")
-    for keyword in top_keywords:
-        is_intent_keyword = any(
-            pattern in keyword["text"].lower() for pattern in INTENT_PATTERNS)
-        volume = keyword.get("volume", 0)
-        trend = keyword.get("trend", 0.0)
+        # Save results to the database
+        save_filtered_keywords(conn, filtered_data)
+        print("Filtered keywords saved to the database.")
 
-        if volume > max_volume:
-            max_volume = volume
-
-        score = (0.7 * keyword["similarity"]) + (0.2 * trend) + \
-                (0.1 * (volume / max_volume)) + (0.1 * is_intent_keyword)
-        keyword.update({"score": score})
-
-    # Sort final top 10 by score
-    sorted_keywords = sorted(
-        top_keywords, key=lambda x: x["score"], reverse=True)
-
-    # Save results to JSON
-    print(f"Saving results to {OUTPUT_FILE}...")
-    with open(OUTPUT_FILE, "w") as f:
-        json.dump(sorted_keywords, f, indent=2)
-
-    print(
-        f"Top 10 keywords saved to '{OUTPUT_FILE}'. Total runtime: {time.time() - total_start_time:.2f} seconds.")
+    finally:
+        conn.close()
 
 
 # Run the script

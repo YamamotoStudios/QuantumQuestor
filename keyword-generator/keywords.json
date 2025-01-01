@@ -1,0 +1,112 @@
+[
+  {
+    "text": "top indie video games",
+    "volume": 480,
+    "competition_level": "LOW",
+    "competition_index": 1,
+    "low_bid": 0.0,
+    "high_bid": 0.0,
+    "trend": 35.2,
+    "similarity": 0.8971256613731384,
+    "score": 7.6681830849124175
+  },
+  {
+    "text": "nvidia founders",
+    "volume": 720,
+    "competition_level": "LOW",
+    "competition_index": 2,
+    "low_bid": 0.0,
+    "high_bid": 0.0,
+    "trend": 28.63,
+    "similarity": 0.5479524731636047,
+    "score": 6.1098594141413525
+  },
+  {
+    "text": "elden ring geforce now",
+    "volume": 140,
+    "competition_level": "LOW",
+    "competition_index": 0,
+    "low_bid": 0.0,
+    "high_bid": 0.0,
+    "trend": 18.71,
+    "similarity": 0.2798510789871216,
+    "score": 3.937952665860091
+  },
+  {
+    "text": "xbox cloud gaming app",
+    "volume": 590,
+    "competition_level": "LOW",
+    "competition_index": 1,
+    "low_bid": 0.02,
+    "high_bid": 0.1,
+    "trend": 14.51,
+    "similarity": 0.7642860412597656,
+    "score": 3.43724006628021
+  },
+  {
+    "text": "playstation cloud streaming",
+    "volume": 260,
+    "competition_level": "LOW",
+    "competition_index": 5,
+    "low_bid": 0.281241,
+    "high_bid": 0.914105,
+    "trend": 14.43,
+    "similarity": 0.593583345413208,
+    "score": 3.3016140328461563
+  },
+  {
+    "text": "luna prime gaming",
+    "volume": 110,
+    "competition_level": "LOW",
+    "competition_index": 2,
+    "low_bid": 0.0,
+    "high_bid": 0.0,
+    "trend": 11.92,
+    "similarity": 0.45389237999916077,
+    "score": 2.701769381446567
+  },
+  {
+    "text": "independent video game companies",
+    "volume": 170,
+    "competition_level": "LOW",
+    "competition_index": 5,
+    "low_bid": 1.25,
+    "high_bid": 2.777602,
+    "trend": 10.56,
+    "similarity": 0.6692140698432922,
+    "score": 2.5805189545813616
+  },
+  {
+    "text": "boosteroid price",
+    "volume": 110,
+    "competition_level": "LOW",
+    "competition_index": 3,
+    "low_bid": 0.0,
+    "high_bid": 0.0,
+    "trend": 9.06,
+    "similarity": 0.25392940640449524,
+    "score": 1.9897952999303015
+  },
+  {
+    "text": "game pass cloud gaming",
+    "volume": 140,
+    "competition_level": "LOW",
+    "competition_index": 4,
+    "low_bid": 0.0,
+    "high_bid": 0.0,
+    "trend": 6.38,
+    "similarity": 0.747421145439148,
+    "score": 1.7992517123765093
+  },
+  {
+    "text": "best ultrawide gaming",
+    "volume": 110,
+    "competition_level": "LOW",
+    "competition_index": 27,
+    "low_bid": 0.0,
+    "high_bid": 0.0,
+    "trend": 3.75,
+    "similarity": 0.6086166501045227,
+    "score": 1.1760763705203205
+  }
+]
