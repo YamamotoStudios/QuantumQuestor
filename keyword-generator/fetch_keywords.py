@@ -2,14 +2,18 @@ import psycopg2
 from datetime import datetime, timedelta
 import json
 from sentence_transformers import SentenceTransformer, util
+from sklearn.cluster import AgglomerativeClustering
 import time
 from concurrent.futures import ThreadPoolExecutor
 import os
+from collections import Counter
+import requests
 
 # API and configuration
 RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
 RAPIDAPI_HOST = os.getenv("RAPIDAPI_HOST")
 CACHE_EXPIRATION_HOURS = 24
+OUTPUT_FILE = "keywords.json"
 
 # Database connection details
 DB_CONNECTION_STRING = os.getenv("DB_CONNECTION_STRING")
@@ -41,21 +45,46 @@ def fetch_keywords_from_api(endpoint, params):
         return []
 
 
-def cache_raw_keywords(conn, raw_keywords):
-    """Cache raw keywords in the database."""
-    with conn.cursor() as cur:
-        for keyword in raw_keywords:
-            cur.execute("""
-                INSERT INTO raw_keywords (text, volume, competition_level, trend, created_at)
-                VALUES (%s, %s, %s, %s, %s)
-                ON CONFLICT (text) DO NOTHING
-            """, (keyword["text"], keyword.get("volume", 0),
-                  keyword.get("competition_level", ""), keyword.get("trend", 0.0), datetime.utcnow()))
-        conn.commit()
+def calculate_similarity_batch(seed_keywords, texts):
+    seed_embeddings = model.encode(seed_keywords, convert_to_tensor=True)
+    text_embeddings = model.encode(texts, convert_to_tensor=True)
+    return util.cos_sim(seed_embeddings, text_embeddings).max(dim=0).values.cpu().tolist()
+
+
+def adjust_score_for_repetition(keywords):
+    keyword_texts = [kw["text"].lower() for kw in keywords]
+    repetition_counts = Counter(keyword_texts)
+    for keyword in keywords:
+        repetitions = repetition_counts[keyword["text"].lower()]
+        if repetitions > 1:
+            penalty = 0.1 * (repetitions - 1)
+            keyword["score"] -= penalty
+            keyword["score"] = max(keyword["score"], 0)
+    return keywords
+
+
+def cluster_keywords(keywords, num_clusters=10):
+    texts = [kw["text"] for kw in keywords]
+    embeddings = model.encode(texts)
+    clustering = AgglomerativeClustering(
+        n_clusters=num_clusters, metric="euclidean", linkage="ward"
+    )
+    cluster_labels = clustering.fit_predict(embeddings)
+    clusters = {}
+    for idx, label in enumerate(cluster_labels):
+        clusters.setdefault(label, []).append(keywords[idx])
+    return clusters
+
+
+def select_from_clusters(clusters):
+    final_keywords = []
+    for cluster_id, cluster_keywords in clusters.items():
+        best_keyword = max(cluster_keywords, key=lambda x: x["score"])
+        final_keywords.append(best_keyword)
+    return final_keywords
 
 
 def fetch_cached_keywords(conn):
-    """Fetch cached raw keywords that haven't expired."""
     expiration_time = datetime.utcnow() - timedelta(hours=CACHE_EXPIRATION_HOURS)
     with conn.cursor() as cur:
         cur.execute("""
@@ -71,7 +100,6 @@ def fetch_cached_keywords(conn):
 
 
 def save_filtered_keywords(conn, filtered_keywords):
-    """Save filtered keywords to the database."""
     with conn.cursor() as cur:
         for keyword in filtered_keywords:
             cur.execute("""
@@ -83,11 +111,8 @@ def save_filtered_keywords(conn, filtered_keywords):
 
 
 def fetch_and_analyze_keywords():
-    # Connect to the database
     conn = psycopg2.connect(DB_CONNECTION_STRING)
-
     try:
-        # Check for cached data
         cached_keywords = fetch_cached_keywords(conn)
         if cached_keywords:
             print("Using cached keywords...")
@@ -95,8 +120,6 @@ def fetch_and_analyze_keywords():
         else:
             combined_data = []
             print("Fetching data concurrently for all seed keywords...")
-
-            # Fetch seed keywords from the database
             with conn.cursor() as cur:
                 cur.execute("SELECT keyword FROM seed_keywords")
                 seed_keywords = [row[0] for row in cur.fetchall()]
@@ -109,16 +132,7 @@ def fetch_and_analyze_keywords():
                         "globalkey", {"keyword": seed, "lang": "en"})
                     topkeys_data = fetch_keywords_from_api(
                         "topkeys", {"keyword": seed, "location": "GB", "lang": "en"})
-
-                    combined_data = []
-                    for data in (keysuggest_data, globalkey_data, topkeys_data):
-                        if isinstance(data, list):
-                            combined_data.extend(data)
-                        elif isinstance(data, dict):
-                            combined_data.append(data)
-
-                    print(f"Success fetching data for seed '{seed}'")
-                    return combined_data
+                    return keysuggest_data + globalkey_data + topkeys_data
                 except Exception as e:
                     print(f"Error fetching data for seed '{seed}': {e}")
                     return []
@@ -127,13 +141,8 @@ def fetch_and_analyze_keywords():
                 combined_data_lists = list(executor.map(
                     fetch_data_for_seed, seed_keywords))
                 combined_data = [
-                    item for sublist in combined_data_lists for item in sublist
-                ]
+                    item for sublist in combined_data_lists for item in sublist]
 
-            print(f"Fetched {len(combined_data)} total keywords.")
-            cache_raw_keywords(conn, combined_data)
-
-        # Filter and process data
         filtered_data = [
             item for item in combined_data
             if (
@@ -146,31 +155,35 @@ def fetch_and_analyze_keywords():
         print(f"{len(filtered_data)} keywords passed initial filters.")
 
         if not filtered_data:
-            print("No keywords passed the filters. Adjust thresholds or input data.")
+            print("No keywords passed the filters.")
             return
 
-        # Semantic similarity analysis
         texts = [item["text"] for item in filtered_data]
         print("Starting semantic similarity analysis...")
         similarities = calculate_similarity_batch(seed_keywords, texts)
 
-        # Add similarity scores and calculate final scores
         max_volume = max(item["volume"] for item in filtered_data)
         for item, similarity in zip(filtered_data, similarities):
-            volume = item["volume"]
-            trend = item["trend"]
             item["similarity"] = similarity
             item["score"] = 0.7 * similarity + 0.2 * \
-                trend + 0.1 * (volume / max_volume)
+                item["trend"] + 0.1 * (item["volume"] / max_volume)
 
-        # Save results to the database
-        save_filtered_keywords(conn, filtered_data)
-        print("Filtered keywords saved to the database.")
+        sorted_keywords = sorted(
+            filtered_data, key=lambda x: x["score"], reverse=True)
+        sorted_keywords = adjust_score_for_repetition(sorted_keywords)
+
+        clusters = cluster_keywords(sorted_keywords, num_clusters=10)
+        unique_keywords = select_from_clusters(clusters)
+
+        save_filtered_keywords(conn, unique_keywords)
+
+        print(f"Saving results to {OUTPUT_FILE}...")
+        with open(OUTPUT_FILE, "w") as f:
+            json.dump(unique_keywords[:10], f, indent=2)
 
     finally:
         conn.close()
 
 
-# Run the script
 if __name__ == "__main__":
     fetch_and_analyze_keywords()
