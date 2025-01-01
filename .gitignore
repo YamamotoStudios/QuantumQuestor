@@ -173,3 +173,5 @@ cython_debug/
 *.pyc
 *.pyo
 .vscode/
+
+secrets.env
