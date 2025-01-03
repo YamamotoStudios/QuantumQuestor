@@ -1,112 +1,112 @@
 [
   {
-    "text": "top indie video games",
-    "volume": 480,
-    "competition_level": "LOW",
-    "competition_index": 1,
-    "low_bid": 0.0,
-    "high_bid": 0.0,
-    "trend": 35.2,
-    "similarity": 0.8971256613731384,
-    "score": 7.6681830849124175
-  },
-  {
-    "text": "nvidia founders",
-    "volume": 720,
-    "competition_level": "LOW",
-    "competition_index": 2,
-    "low_bid": 0.0,
-    "high_bid": 0.0,
-    "trend": 28.63,
-    "similarity": 0.5479524731636047,
-    "score": 6.1098594141413525
-  },
-  {
-    "text": "elden ring geforce now",
-    "volume": 140,
-    "competition_level": "LOW",
-    "competition_index": 0,
-    "low_bid": 0.0,
-    "high_bid": 0.0,
-    "trend": 18.71,
-    "similarity": 0.2798510789871216,
-    "score": 3.937952665860091
-  },
-  {
-    "text": "xbox cloud gaming app",
+    "text": "cloud gaming apex legends",
     "volume": 590,
     "competition_level": "LOW",
-    "competition_index": 1,
-    "low_bid": 0.02,
-    "high_bid": 0.1,
-    "trend": 14.51,
-    "similarity": 0.7642860412597656,
-    "score": 3.43724006628021
+    "competition_index": 2,
+    "low_bid": 0.0,
+    "high_bid": 0.0,
+    "trend": 683.8,
+    "similarity": 0.8324689269065857,
+    "score": 137.3427497816813
   },
   {
-    "text": "playstation cloud streaming",
-    "volume": 260,
+    "text": "xbox game pass cloud gaming",
+    "volume": 18100,
     "competition_level": "LOW",
-    "competition_index": 5,
-    "low_bid": 0.281241,
-    "high_bid": 0.914105,
-    "trend": 14.43,
-    "similarity": 0.593583345413208,
-    "score": 3.3016140328461563
+    "competition_index": 10,
+    "low_bid": 0.04,
+    "high_bid": 0.56,
+    "trend": 327.41,
+    "similarity": 0.6952997446060181,
+    "score": 65.86937040516584
   },
   {
-    "text": "luna prime gaming",
+    "text": "xbox game pass nvidia geforce now",
+    "volume": 390,
+    "competition_level": "LOW",
+    "competition_index": 7,
+    "low_bid": 0.165672,
+    "high_bid": 1.095251,
+    "trend": 216.64,
+    "similarity": 0.43092772364616394,
+    "score": 43.62966364012896
+  },
+  {
+    "text": "best phone for xbox cloud gaming",
+    "volume": 720,
+    "competition_level": "LOW",
+    "competition_index": 26,
+    "low_bid": 0.0,
+    "high_bid": 0.0,
+    "trend": 183.45,
+    "similarity": 0.670323371887207,
+    "score": 37.15925263769331
+  },
+  {
+    "text": "playstation cloud streaming games",
     "volume": 110,
+    "competition_level": "LOW",
+    "competition_index": 4,
+    "low_bid": 0.156719,
+    "high_bid": 2.0,
+    "trend": 162.2,
+    "similarity": 0.7052416205406189,
+    "score": 32.93367314897697
+  },
+  {
+    "text": "amazon luna new games",
+    "volume": 260,
     "competition_level": "LOW",
     "competition_index": 2,
     "low_bid": 0.0,
     "high_bid": 0.0,
-    "trend": 11.92,
-    "similarity": 0.45389237999916077,
-    "score": 2.701769381446567
+    "trend": 139.72,
+    "similarity": 0.4497873783111572,
+    "score": 28.258860653868908
   },
   {
-    "text": "independent video game companies",
+    "text": "cloud gaming trial",
+    "volume": 480,
+    "competition_level": "LOW",
+    "competition_index": 7,
+    "low_bid": 0.135,
+    "high_bid": 2.76,
+    "trend": 67.6,
+    "similarity": 0.7561564445495605,
+    "score": 14.049327029432867
+  },
+  {
+    "text": "warzone no xcloud",
     "volume": 170,
     "competition_level": "LOW",
-    "competition_index": 5,
-    "low_bid": 1.25,
-    "high_bid": 2.777602,
-    "trend": 10.56,
-    "similarity": 0.6692140698432922,
-    "score": 2.5805189545813616
-  },
-  {
-    "text": "boosteroid price",
-    "volume": 110,
-    "competition_level": "LOW",
-    "competition_index": 3,
+    "competition_index": 1,
     "low_bid": 0.0,
     "high_bid": 0.0,
-    "trend": 9.06,
-    "similarity": 0.25392940640449524,
-    "score": 1.9897952999303015
+    "trend": 57.88,
+    "similarity": 0.3820737302303314,
+    "score": 11.843457815540793
   },
   {
-    "text": "game pass cloud gaming",
+    "text": "xbox cloud gaming owned games",
     "volume": 140,
     "competition_level": "LOW",
-    "competition_index": 4,
+    "competition_index": 2,
     "low_bid": 0.0,
     "high_bid": 0.0,
-    "trend": 6.38,
-    "similarity": 0.747421145439148,
-    "score": 1.7992517123765093
+    "trend": 37.01,
+    "similarity": 0.7321164608001709,
+    "score": 7.914486632049171
   },
   {
-    "text": "best ultrawide gaming",
-    "volume": 110,
+    "text": "boosteroid steam deck",
+    "volume": 260,
     "competition_level": "LOW",
-    "competition_index": 27,
+    "competition_index": 1,
     "low_bid": 0.0,
     "high_bid": 0.0,
-    "trend": 3.75,
-    "similarity": 0.6086166501045227,
-    "score": 1.1760763705203205
+    "trend": 16.55,
+    "similarity": 0.559725821018219,
+    "score": 3.701817563763849
   }
 ]

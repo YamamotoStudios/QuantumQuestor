@@ -2,7 +2,8 @@ from dotenv import load_dotenv
 import os
 
 # Define the path to the secrets file
-dotenv_path = ".devcontainer/secrets.env"
+dotenv_path = os.path.abspath("secrets.env")
+print(f"Absolute path to secrets file: {dotenv_path}")
 
 # Load environment variables from the secrets file
 if load_dotenv(dotenv_path):

@@ -8,6 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 import os
 from collections import Counter
 import requests
+from load_env import load_dotenv
 
 # API and configuration
 RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
@@ -105,12 +106,13 @@ def save_filtered_keywords(conn, filtered_keywords):
             cur.execute("""
                 INSERT INTO filtered_keywords (text, similarity, score, created_at)
                 VALUES (%s, %s, %s, %s)
-                ON CONFLICT (text) DO NOTHING
             """, (keyword["text"], keyword["similarity"], keyword["score"], datetime.utcnow()))
         conn.commit()
 
 
 def fetch_and_analyze_keywords():
+    print(f"DB_CONNECTION_STRING: {DB_CONNECTION_STRING}")
+
     conn = psycopg2.connect(DB_CONNECTION_STRING)
     try:
         cached_keywords = fetch_cached_keywords(conn)
@@ -186,4 +188,10 @@ def fetch_and_analyze_keywords():
 
 
 if __name__ == "__main__":
+    load_dotenv()
+
+    RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
+    RAPIDAPI_HOST = os.getenv("RAPIDAPI_HOST")
+    DB_CONNECTION_STRING = os.getenv("DB_CONNECTION_STRING")
+
     fetch_and_analyze_keywords()
