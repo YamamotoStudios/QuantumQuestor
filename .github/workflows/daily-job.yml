@@ -33,7 +33,7 @@ jobs:
         run: |
           pwd
           python -m pip install --upgrade pip
-          pip install -r ../keyword_generator/requirements.txt
+          pip install -r keyword_generator/requirements.txt
 
       # Run the Python script
       - name: Run script
@@ -42,4 +42,4 @@ jobs:
           RAPIDAPI_HOST: ${{ secrets.RAPIDAPI_HOST }}
           DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
         run: |
-          ../keyword_generator/fetch_keywords.py
+          keyword_generator/fetch_keywords.py
