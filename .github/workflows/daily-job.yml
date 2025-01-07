@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Print working directory
-        run: pwd
+        run: 
              ls
 
       # Checkout the repository
