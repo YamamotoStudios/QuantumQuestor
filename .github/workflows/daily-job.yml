@@ -32,4 +32,4 @@ jobs:
           RAPIDAPI_HOST: ${{ secrets.RAPIDAPI_HOST }}
           DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
         run: |
-          python path/to/your_script.py
+          keyword_generator/fetch_keywords.py
