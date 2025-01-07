@@ -4,6 +4,12 @@ on:
   schedule:
     # Run daily at midnight (UTC)
     - cron: "0 0 * * *"
+  workflow_dispatch:
+    inputs:
+      script_mode:
+        description: "Specify the script mode (e.g., test or production)"
+        required: true
+        default: "test"
 
 jobs:
   run-script:
