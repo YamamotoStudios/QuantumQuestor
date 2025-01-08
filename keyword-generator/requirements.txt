@@ -1,5 +1,8 @@
 trendspy
 pandas
 supabase
-requests[socks]
-sentence-transformers
+requests[socks]>=2.26.0
+sentence-transformers>=2.2.2
+psycopg2>=2.9.0
+scikit-learn>=1.0.2
+python-dotenv>=0.20.0
