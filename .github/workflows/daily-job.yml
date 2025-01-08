@@ -18,25 +18,7 @@ jobs:
       # Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v3
-
-      - name: Check directory structure
-        run: |
-          echo "Current working directory:"
-          pwd
-          echo "Listing files:"
-          ls -al
-    
-      - name: Debug folder structure
-        run: |
-          echo "Listing root directory:"
-          ls -al /
-          echo "Listing runner workspace:"
-          ls -al /home/runner/work
-          echo "Listing runner project directory:"
-          ls -al /home/runner/work/QuantumQuestor
-          echo "Listing runner repo directory:"
-          ls -al /home/runner/work/QuantumQuestor/QuantumQuestor
-
+        
       # Set up Python
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -49,6 +31,9 @@ jobs:
           pwd
           python -m pip install --upgrade pip
           pip install -r keyword-generator/requirements.txt
+
+      - name: Make the script executable
+        run: chmod +x path/to/your_script.py
 
       # Run the Python script
       - name: Run script
