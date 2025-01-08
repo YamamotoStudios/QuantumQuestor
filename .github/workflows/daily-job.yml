@@ -22,7 +22,17 @@ jobs:
           echo "Listing files:"
           ls -al
     
-
+      - name: Debug folder structure
+        run: |
+          echo "Listing root directory:"
+          ls -al /
+          echo "Listing runner workspace:"
+          ls -al /home/runner/work
+          echo "Listing runner project directory:"
+          ls -al /home/runner/work/QuantumQuestor
+          echo "Listing runner repo directory:"
+          ls -al /home/runner/work/QuantumQuestor/QuantumQuestor
+        
       # Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v3
