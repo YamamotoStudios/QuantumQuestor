@@ -15,6 +15,10 @@ jobs:
   run-script:
     runs-on: ubuntu-latest
     steps:
+      # Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
       - name: Check directory structure
         run: |
           echo "Current working directory:"
@@ -32,10 +36,6 @@ jobs:
           ls -al /home/runner/work/QuantumQuestor
           echo "Listing runner repo directory:"
           ls -al /home/runner/work/QuantumQuestor/QuantumQuestor
-        
-      # Checkout the repository
-      - name: Checkout repository
-        uses: actions/checkout@v3
 
       # Set up Python
       - name: Set up Python
