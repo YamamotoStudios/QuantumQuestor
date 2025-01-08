@@ -43,3 +43,7 @@ jobs:
           DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
         run: |
           python keyword-generator/fetch_keywords.py
+
+      - name: List all environment variables
+        run: printenv
+

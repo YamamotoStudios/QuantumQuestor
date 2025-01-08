@@ -194,4 +194,8 @@ if __name__ == "__main__":
     RAPIDAPI_HOST = os.getenv("RAPIDAPI_HOST")
     DB_CONNECTION_STRING = os.getenv("DB_CONNECTION_STRING")
 
+    if not all([RAPIDAPI_KEY, RAPIDAPI_HOST, DB_CONNECTION_STRING]):
+        raise EnvironmentError(
+            "One or more required environment variables are missing!")
+
     fetch_and_analyze_keywords()
