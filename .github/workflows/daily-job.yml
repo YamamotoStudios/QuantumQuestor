@@ -15,9 +15,13 @@ jobs:
   run-script:
     runs-on: ubuntu-latest
     steps:
-      - name: Print working directory
-        run: 
-             ls
+      - name: Check directory structure
+        run: |
+          echo "Current working directory:"
+          pwd
+          echo "Listing files:"
+          ls -al
+    
 
       # Checkout the repository
       - name: Checkout repository
