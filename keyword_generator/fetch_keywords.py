@@ -1,14 +1,14 @@
-import psycopg2
-from datetime import datetime, timedelta
-import json
-from sentence_transformers import SentenceTransformer, util
-from sklearn.cluster import AgglomerativeClustering
-import time
-from concurrent.futures import ThreadPoolExecutor
-import os
-from collections import Counter
 import requests
-from load_env import load_dotenv
+from collections import Counter
+import os
+from concurrent.futures import ThreadPoolExecutor
+import time
+from sklearn.cluster import AgglomerativeClustering
+from sentence_transformers import SentenceTransformer, util
+import json
+from datetime import datetime, timedelta
+import psycopg2
+from env_loader import load_env
 
 # API and configuration
 RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
@@ -188,7 +188,7 @@ def fetch_and_analyze_keywords():
 
 
 if __name__ == "__main__":
-    load_dotenv()
+    load_env.load_env_from_dotenv()
 
     RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
     RAPIDAPI_HOST = os.getenv("RAPIDAPI_HOST")

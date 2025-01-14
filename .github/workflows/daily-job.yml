@@ -44,6 +44,3 @@ jobs:
         run: |
           python keyword-generator/fetch_keywords.py
 
-      - name: List all environment variables
-        run: printenv
-
