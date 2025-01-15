@@ -4,12 +4,12 @@ on:
 schedule:
   # Run weekly on Monday at 4 PM UTC
   - cron: "0 16 * * 1"
-  workflow_dispatch:
-    inputs:
-      script_mode:
-        description: "Specify the script mode (e.g., test or production)"
-        required: true
-        default: "test"
+workflow_dispatch:
+  inputs:
+    script_mode:
+      description: "Specify the script mode (e.g., test or production)"
+      required: true
+      default: "test"
 
 jobs:
   run-script:
