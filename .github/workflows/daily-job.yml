@@ -30,10 +30,10 @@ jobs:
         run: |
           pwd
           python -m pip install --upgrade pip
-          pip install -r keyword-generator/requirements.txt
+          pip install -r keyword_generator/requirements.txt
 
       - name: Make the script executable
-        run: chmod +x keyword-generator/fetch_keywords.py
+        run: chmod +x keyword_generator/fetch_keywords.py
 
       # Run the Python script
       - name: Run script
@@ -42,5 +42,5 @@ jobs:
           RAPIDAPI_HOST: ${{ secrets.RAPIDAPI_HOST }}
           DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
         run: |
-          python keyword-generator/fetch_keywords.py
+          python keyword_generator/fetch_keywords.py
 

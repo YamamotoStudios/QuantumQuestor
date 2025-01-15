@@ -39,11 +39,11 @@ This repository is structured as a **monorepo**, containing all components of th
 
 ```plaintext
 /quantum-questor
-├── /keyword-generator    # Keyword generation scripts and logic
-├── /db-setup             # Database schema and migration scripts
-├── /api-integration      # API wrappers and integration logic
-├── /article-generation   # Article drafting and content management
-├── /shared-libraries     # Shared utilities and helper scripts
+├── /keyword_generator    # Keyword generation scripts and logic
+├── /db_setup             # Database schema and migration scripts
+├── /api_integration      # API wrappers and integration logic
+├── /article_generation   # Article drafting and content management
+├── /shared_libraries     # Shared utilities and helper scripts
 ├── /docs                 # Documentation and guides
 └── /tests                # Unit and integration tests
 ```
