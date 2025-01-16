@@ -3,7 +3,7 @@ name: Run Python Script Daily
 on:
   schedule:
     # Run weekly on Monday at 4 PM UTC
-    - cron: "0 16 * * 1"
+    - cron: '0 15 * * 1'
   workflow_dispatch:
     inputs:
       script_mode:
