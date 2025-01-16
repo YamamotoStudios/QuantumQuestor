@@ -1,5 +1,4 @@
-name: Run Python Script Daily
-
+name: Run Fetch Keywords
 on:
   schedule:
     # Run weekly on Monday at 4 PM UTC
@@ -32,9 +31,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r keyword_generator/requirements.txt
 
-      - name: Make the script executable
-        run: chmod +x keyword_generator/fetch_keywords.py
-
       # Run the Python script
       - name: Run script
         env:
@@ -42,5 +38,6 @@ jobs:
           RAPIDAPI_HOST: ${{ secrets.RAPIDAPI_HOST }}
           DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
         run: |
+          cd keyword_generator
           python keyword_generator/fetch_keywords.py
 
