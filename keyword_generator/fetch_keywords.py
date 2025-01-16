@@ -8,7 +8,7 @@ from sentence_transformers import SentenceTransformer, util
 import json
 from datetime import datetime, timedelta
 import psycopg2
-from env_loader import load_env
+from ..env_loader import load_env
 
 # API and configuration
 RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
