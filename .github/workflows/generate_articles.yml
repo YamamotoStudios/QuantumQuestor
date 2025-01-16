@@ -6,7 +6,7 @@ on:
     - cron: '0 16 * * 1'
   workflow_dispatch:  # Allows manual triggering of the workflow
     inputs:
-        script_mode:
+      script_mode: # Define an input parameter
         description: "Specify the script mode (e.g., test or production)"
         required: true
         default: "test"
