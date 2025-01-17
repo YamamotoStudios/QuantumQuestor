@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 import requests
 import psycopg2
 from datetime import datetime
