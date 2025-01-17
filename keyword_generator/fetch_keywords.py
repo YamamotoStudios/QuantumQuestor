@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 import requests
 from collections import Counter
 import os
@@ -8,7 +9,6 @@ from sentence_transformers import SentenceTransformer, util
 import json
 from datetime import datetime, timedelta
 import psycopg2
-from ..env_loader import load_env
 
 # API and configuration
 RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
@@ -187,8 +187,20 @@ def fetch_and_analyze_keywords():
         conn.close()
 
 
+def load_env_from_dotenv():
+    # Define the path to the secrets file
+    dotenv_path = os.path.abspath("../env_loader/secrets.env")
+    print(f"Absolute path to secrets file: {dotenv_path}")
+
+    # Load environment variables from the secrets file
+    if load_dotenv(dotenv_path):
+        print("Secrets loaded successfully from secrets.env.")
+    else:
+        print(f"Failed to load secrets.env file from {dotenv_path}")
+
+
 if __name__ == "__main__":
-    load_env.load_env_from_dotenv()
+    load_env_from_dotenv()
 
     RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
     RAPIDAPI_HOST = os.getenv("RAPIDAPI_HOST")
