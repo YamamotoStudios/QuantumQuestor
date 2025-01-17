@@ -3,7 +3,6 @@ from dotenv import load_dotenv
 import requests
 import psycopg2
 from datetime import datetime
-from env_loader import load_env
 import time
 
 # Load environment variables for secure access
