@@ -111,8 +111,6 @@ def save_filtered_keywords(conn, filtered_keywords):
 
 
 def fetch_and_analyze_keywords():
-    print(f"DB_CONNECTION_STRING: {DB_CONNECTION_STRING}")
-
     conn = psycopg2.connect(DB_CONNECTION_STRING)
     try:
         cached_keywords = fetch_cached_keywords(conn)
