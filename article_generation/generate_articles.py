@@ -194,6 +194,12 @@ def load_env_from_dotenv():
 if __name__ == "__main__":
     load_env_from_dotenv()
 
+    RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
+    RAPIDAPI_HOST = os.getenv("RAPIDAPI_HOST")
+
+    print(f"RAPIDAPI_KEY {RAPIDAPI_KEY}")
+
+
     DATABASE_URL = os.getenv("DB_CONNECTION_STRING")
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     WORDPRESS_CLIENT_ID = os.getenv("WORDPRESS_CLIENT_ID")
