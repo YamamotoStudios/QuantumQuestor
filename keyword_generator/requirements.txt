@@ -3,6 +3,7 @@ pandas
 supabase
 requests[socks]>=2.26.0
 sentence-transformers>=2.2.2
+transformers==4.36.2
 psycopg2>=2.9.0
 scikit-learn>=1.0.2
 python-dotenv>=0.20.0
