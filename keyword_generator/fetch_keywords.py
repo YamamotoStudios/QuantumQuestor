@@ -109,10 +109,27 @@ def save_filtered_keywords(conn, filtered_keywords):
             """, (keyword["text"], keyword["similarity"], keyword["score"], datetime.utcnow()))
         conn.commit()
 
+def fetch_blacklist(conn):
+    with conn.cursor() as cur:
+        cur.execute("SELECT term FROM blacklist")
+        return set(row[0].lower() for row in cur.fetchall())
+
+def insert_into_blacklist(conn, keywords):
+    with conn.cursor() as cur:
+        for kw in keywords:
+            cur.execute("""
+                INSERT INTO blacklist (term)
+                VALUES (%s)
+                ON CONFLICT (term) DO NOTHING
+            """, (kw.lower(),))
+        conn.commit()
 
 def fetch_and_analyze_keywords():
     conn = psycopg2.connect(DB_CONNECTION_STRING)
     try:
+        # Fetch existing blacklist
+        blacklist = fetch_blacklist(conn)
+
         cached_keywords = fetch_cached_keywords(conn)
         if cached_keywords:
             print("Using cached keywords...")
@@ -143,16 +160,22 @@ def fetch_and_analyze_keywords():
                 combined_data = [
                     item for sublist in combined_data_lists for item in sublist]
 
-        filtered_data = [
-            item for item in combined_data
+        # Filter out blacklisted terms
+        pre_filter_count = len(combined_data)
+        filtered_data = []
+        for item in combined_data:
+            text = item.get("text", "").strip().lower()
             if (
+                text not in blacklist and
                 item.get("volume", 0) > 100 and
                 item.get("competition_level", "").lower() in ["low", "medium"] and
                 item.get("trend", 0) >= 0 and
-                len(item.get("text", "").split()) >= 2
-            )
-        ]
+                len(text.split()) >= 2
+            ):
+                filtered_data.append(item)
+
         print(f"{len(filtered_data)} keywords passed initial filters.")
+        print(f"{pre_filter_count - len(filtered_data)} keywords ignored due to blacklist or filter failure.")
 
         if not filtered_data:
             print("No keywords passed the filters.")
@@ -165,17 +188,30 @@ def fetch_and_analyze_keywords():
         max_volume = max(item["volume"] for item in filtered_data)
         for item, similarity in zip(filtered_data, similarities):
             item["similarity"] = similarity
-            item["score"] = 0.7 * similarity + 0.2 * \
-                item["trend"] + 0.1 * (item["volume"] / max_volume)
+            item["score"] = 0.7 * similarity + 0.2 * item["trend"] + 0.1 * (item["volume"] / max_volume)
 
-        sorted_keywords = sorted(
-            filtered_data, key=lambda x: x["score"], reverse=True)
+        sorted_keywords = sorted(filtered_data, key=lambda x: x["score"], reverse=True)
         sorted_keywords = adjust_score_for_repetition(sorted_keywords)
 
         clusters = cluster_keywords(sorted_keywords, num_clusters=10)
         unique_keywords = select_from_clusters(clusters)
 
+        # Ensure we return exactly 10
+        unique_texts = set(kw["text"].strip().lower() for kw in unique_keywords)
+        for kw in sorted_keywords:
+            text = kw["text"].strip().lower()
+            if len(unique_keywords) >= 10:
+                break
+            if text not in unique_texts:
+                unique_keywords.append(kw)
+                unique_texts.add(text)
+
         save_filtered_keywords(conn, unique_keywords)
+
+        # Add selected keywords to the blacklist
+        blacklisted_now = [kw["text"].strip().lower() for kw in unique_keywords]
+        insert_into_blacklist(conn, blacklisted_now)
+        print(f"{len(blacklisted_now)} new keywords added to blacklist.")
 
         print(f"Saving results to {OUTPUT_FILE}...")
         with open(OUTPUT_FILE, "w") as f:
@@ -183,7 +219,6 @@ def fetch_and_analyze_keywords():
 
     finally:
         conn.close()
-
 
 def load_env_from_dotenv():
     # Define the path to the secrets file
