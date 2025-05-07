@@ -112,7 +112,7 @@ def save_filtered_keywords(conn, filtered_keywords):
 def fetch_blacklist(conn):
     with conn.cursor() as cur:
         cur.execute("SELECT term FROM blacklist")
-        return set(row[0].lower() for row in cur.fetchall())
+        return set(row[0].strip().lower() for row in cur.fetchall())
 
 def insert_into_blacklist(conn, keywords):
     with conn.cursor() as cur:
@@ -154,7 +154,7 @@ def fetch_and_analyze_keywords():
                     print(f"Error fetching data for seed '{seed}': {e}")
                     return []
 
-            with ThreadPoolExecutor() as executor:
+            with ThreadPoolExecutor(max_workers=3) as executor:
                 combined_data_lists = list(executor.map(
                     fetch_data_for_seed, seed_keywords))
                 combined_data = [
@@ -162,9 +162,16 @@ def fetch_and_analyze_keywords():
 
         # Filter out blacklisted terms
         pre_filter_count = len(combined_data)
+        
         filtered_data = []
+        skipped_blacklisted = []
+        
         for item in combined_data:
             text = item.get("text", "").strip().lower()
+            if text in blacklist:
+                skipped_blacklisted.append(text)
+                continue  # Skip early, no need to check other filters
+            
             if (
                 text not in blacklist and
                 item.get("volume", 0) > 100 and
@@ -175,7 +182,14 @@ def fetch_and_analyze_keywords():
                 filtered_data.append(item)
 
         print(f"{len(filtered_data)} keywords passed initial filters.")
-        print(f"{pre_filter_count - len(filtered_data)} keywords ignored due to blacklist or filter failure.")
+
+        if skipped_blacklisted:
+            print(f"{pre_filter_count - len(filtered_data)} keywords ignored due to blacklist or filter failure.")
+            print(f"Skipped {len(skipped_blacklisted)} blacklisted keywords:")
+            for kw in skipped_blacklisted:
+                print(f' - "{kw}"')
+            else:
+                print("No keywords were skipped due to blacklist.")
 
         if not filtered_data:
             print("No keywords passed the filters.")
@@ -210,6 +224,8 @@ def fetch_and_analyze_keywords():
 
         # Add selected keywords to the blacklist
         blacklisted_now = [kw["text"].strip().lower() for kw in unique_keywords]
+        for kw in blacklisted_now:
+            print(f"Blacklisting keyword: '{kw}'")
         insert_into_blacklist(conn, blacklisted_now)
         print(f"{len(blacklisted_now)} new keywords added to blacklist.")
 
