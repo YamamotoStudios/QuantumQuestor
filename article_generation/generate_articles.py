@@ -4,6 +4,7 @@ import requests
 import psycopg2
 from datetime import datetime
 import time
+import json
 
 # Load environment variables for secure access
 DATABASE_URL = os.getenv("DB_CONNECTION_STRING")
@@ -39,8 +40,6 @@ def get_wordpress_token():
         print(f"Error generating WordPress token: {e}")
         return None
 
-# Step 1: Fetch the latest 10 keywords from the database
-
 
 def fetch_recent_keywords():
     try:
@@ -63,41 +62,24 @@ def fetch_recent_keywords():
 # Step 2: Generate articles using ChatGPT API
 
 
-def generate_article(keyword, max_tokens=1500, retries=3, delay=5):
-    """
-    Generate an article using the OpenAI API with retries and rate-limiting.
-
-    Args:
-        keyword (str): The keyword for the article.
-        max_tokens (int): Maximum tokens for the generated content.
-        retries (int): Number of retry attempts for handling failures.
-        delay (int): Initial delay (in seconds) between retries.
-
-    Returns:
-        str or None: The generated article text, or None if failed.
-    """
-    prompt = (
-        "Write a detailed, SEO-optimized article about \"{keyword}\".\n\n"
-        "Structure:\n"
-        "- Title: Craft a compelling, keyword-rich title that matches common search intent.\n"
-        "- Meta Description: Write a ~150 character meta description with the primary keyword and a reason to click.\n"
-        "- Introduction: Engage the reader quickly and naturally include the main keyword.\n"
-        "- Body Content: Use a logical heading structure (H2s and H3s). Include related subtopics and long-tail keywords. "
-        "Address common questions people may search (e.g., 'People also ask' style).\n"
-        "- Internal Linking: Suggest 2–3 natural internal links to relevant articles on www.quantumquestor.com using descriptive anchor text. "
-        "You don’t need to verify URLs; just describe where links would fit.\n"
-        "- Conclusion: Recap the value, and encourage readers to explore more content on the site.\n\n"
-        "Additional Instructions:\n"
-        "- Use natural language — avoid keyword stuffing.\n"
-        "- Only include external authoritative links where they genuinely help.\n"
-        "- Assume the article will be published on a WordPress blog.\n"
-        "- The tone should be informative, friendly, and professional.\n"
+def build_prompt(keyword):
+    return (
+        f"Generate a fully structured blog post about \"{keyword}\" for a tech and lifestyle site.\n\n"
+        "Return your response as a valid JSON object only — no markdown, no explanation.\n\n"
+        "The JSON should contain the following keys:\n"
+        "  - \"title\": A compelling, SEO-optimized blog title\n"
+        "  - \"meta_description\": A ~150-character meta description containing the keyword\n"
+        "  - \"slug\": A URL-safe slug derived from the title (e.g. 'quantum-ai-for-gamers')\n"
+        "  - \"excerpt\": A short summary or teaser of the article (1 to 2 sentences)\n"
+        "  - \"content\": The full HTML blog content (with headings, paragraphs, and internal links described if relevant)\n\n"
+        "The tone should be friendly, informative, and technically credible. Format headings using <h2>, <h3> etc. inside the content field.\n"
+        "If relevant, suggest 2 to 3 internal links by describing where they would go (but you do not need to insert real URLs).\n\n"
+        "Output ONLY a valid JSON object — no prose, no commentary."
     )
-    headers = {
-        "Authorization": f"Bearer {OPENAI_API_KEY}",
-        "Content-Type": "application/json",
-    }
-    data = {
+
+
+def build_openai_request(prompt, max_tokens):
+    return {
         "model": "gpt-4",
         "messages": [
             {
@@ -110,66 +92,77 @@ def generate_article(keyword, max_tokens=1500, retries=3, delay=5):
             },
             {
                 "role": "user",
-                "content": filled_prompt  # This is your formatted prompt with keyword inserted
+                "content": prompt
             }
         ],
-        "max_tokens": max_tokens,  # You can increase or decrease depending on how long you want the article
-        "temperature": 0.7,  # Balanced creativity and structure
+        "max_tokens": max_tokens,
+        "temperature": 0.7,
         "top_p": 1.0,
         "frequency_penalty": 0.2,
         "presence_penalty": 0.1,
     }
 
+
+def call_openai_api(data, headers, retries, delay, keyword):
     for attempt in range(1, retries + 1):
         try:
             print(
                 f"Attempt {attempt}: Generating article for keyword '{keyword}'...")
             response = requests.post(
-                "https://api.openai.com/v1/chat/completions",
-                headers=headers,
-                json=data
-            )
+                "https://api.openai.com/v1/chat/completions", headers=headers, json=data)
             response.raise_for_status()
             print(f"Successfully generated article for keyword: '{keyword}'")
             return response.json()["choices"][0]["message"]["content"]
-
         except requests.exceptions.HTTPError as http_err:
-            if http_err.response.status_code == 429:  # Rate limit exceeded
+            code = http_err.response.status_code
+            if code == 429:
                 print(f"Rate limit exceeded. Retrying in {delay} seconds...")
                 time.sleep(delay)
-                delay *= 2  # Exponential backoff
-                continue
-            elif http_err.response.status_code == 500:  # Server error
+                delay *= 2
+            elif code == 500:
                 print(f"Server error. Retrying in {delay} seconds...")
                 time.sleep(delay)
-                continue
             else:
                 print(f"HTTP error: {http_err}")
                 print(f"Response: {http_err.response.content.decode()}")
                 break
-
         except Exception as e:
             print(f"Unexpected error generating article for '{keyword}': {e}")
             break
-
     print(
         f"Failed to generate article for keyword: '{keyword}' after {retries} attempts.")
     return None
 
-# Step 3: Publish articles to WordPress
+
+def generate_article(keyword, max_tokens=1500, retries=3, delay=5):
+    prompt = build_prompt(keyword)
+    data = build_openai_request(prompt, max_tokens)
+    headers = {
+        "Authorization": f"Bearer {OPENAI_API_KEY}",
+        "Content-Type": "application/json",
+    }
+    return call_openai_api(data, headers, retries, delay, keyword)
 
 
-def publish_to_wordpress(title, content, token):
+def publish_to_wordpress(title, content, token, excerpt=None, slug=None, status="draft"):
     url = f"https://public-api.wordpress.com/wp/v2/sites/{WORDPRESS_SITE_URL}/posts"
+
     data = {
         "title": title,
         "content": content,
-        "status": "draft",
+        "status": status,
     }
+
+    if excerpt:
+        data["excerpt"] = excerpt
+    if slug:
+        data["slug"] = slug
+
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",
     }
+
     try:
         response = requests.post(url, json=data, headers=headers)
         response.raise_for_status()
@@ -177,8 +170,6 @@ def publish_to_wordpress(title, content, token):
     except Exception as e:
         print(f"Error publishing article '{title}': {e}")
         return None
-
-# Main function
 
 
 def main():
@@ -197,7 +188,14 @@ def main():
     # Process each keyword
     for keyword in keywords:
         print(f"Processing keyword: {keyword}")
-        article = generate_article(keyword)
+        article = generate_article("quantum computing for gamers")
+        try:
+            article_data = json.loads(article)
+            print("Title:", article_data["title"])
+            print("Slug:", article_data["slug"])
+            print("Preview:", article_data["meta_description"])
+        except json.JSONDecodeError as e:
+            print("GPT returned invalid JSON. You may want to retry or clean it up.")
         if article:
             response = publish_to_wordpress(keyword, article, token)
             if response:
@@ -228,7 +226,6 @@ if __name__ == "__main__":
     RAPIDAPI_HOST = os.getenv("RAPIDAPI_HOST")
 
     print(f"RAPIDAPI_KEY {RAPIDAPI_KEY}")
-
 
     DATABASE_URL = os.getenv("DB_CONNECTION_STRING")
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
