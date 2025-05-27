@@ -71,7 +71,7 @@ def build_prompt(keyword):
         "  - \"meta_description\": A ~150-character meta description containing the keyword\n"
         "  - \"slug\": A URL-safe slug derived from the title (e.g. 'quantum-ai-for-gamers')\n"
         "  - \"excerpt\": A short summary or teaser of the article (1 to 2 sentences)\n"
-        "  - \"content\": The full HTML blog content (with headings, paragraphs, and internal links described if relevant)\n\n"
+        "  - \"content\": The full HTML blog content (with headings, paragraphs, and internal links described if relevant, SEO conscious and optimized.)\n\n"
         "The tone should be friendly, informative, and technically credible. Format headings using <h2>, <h3> etc. inside the content field.\n"
         "If relevant, suggest 2 to 3 internal links by describing where they would go (but you do not need to insert real URLs).\n\n"
         "Output ONLY a valid JSON object — no prose, no commentary."
@@ -188,7 +188,7 @@ def main():
     # Process each keyword
     for keyword in keywords:
         print(f"Processing keyword: {keyword}")
-        article = generate_article("quantum computing for gamers")
+        article = generate_article(keyword)
         try:
             article_data = json.loads(article)
             print("Title:", article_data["title"])
