@@ -76,7 +76,23 @@ def generate_article(keyword, max_tokens=1500, retries=3, delay=5):
     Returns:
         str or None: The generated article text, or None if failed.
     """
-    prompt = f"Write a detailed article about '{keyword}'. Include an introduction, main content, and conclusion."
+    prompt = (
+        "Write a detailed, SEO-optimized article about \"{keyword}\".\n\n"
+        "Structure:\n"
+        "- Title: Craft a compelling, keyword-rich title that matches common search intent.\n"
+        "- Meta Description: Write a ~150 character meta description with the primary keyword and a reason to click.\n"
+        "- Introduction: Engage the reader quickly and naturally include the main keyword.\n"
+        "- Body Content: Use a logical heading structure (H2s and H3s). Include related subtopics and long-tail keywords. "
+        "Address common questions people may search (e.g., 'People also ask' style).\n"
+        "- Internal Linking: Suggest 2–3 natural internal links to relevant articles on www.quantumquestor.com using descriptive anchor text. "
+        "You don’t need to verify URLs; just describe where links would fit.\n"
+        "- Conclusion: Recap the value, and encourage readers to explore more content on the site.\n\n"
+        "Additional Instructions:\n"
+        "- Use natural language — avoid keyword stuffing.\n"
+        "- Only include external authoritative links where they genuinely help.\n"
+        "- Assume the article will be published on a WordPress blog.\n"
+        "- The tone should be informative, friendly, and professional.\n"
+    )
     headers = {
         "Authorization": f"Bearer {OPENAI_API_KEY}",
         "Content-Type": "application/json",
@@ -84,10 +100,24 @@ def generate_article(keyword, max_tokens=1500, retries=3, delay=5):
     data = {
         "model": "gpt-4",
         "messages": [
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": prompt},
+            {
+                "role": "system",
+                "content": (
+                    "You are an experienced SEO content writer for a niche blog. "
+                    "Your job is to write compelling, keyword-optimized articles that rank well on Google, "
+                    "engage human readers, and follow best SEO practices without keyword stuffing."
+                )
+            },
+            {
+                "role": "user",
+                "content": filled_prompt  # This is your formatted prompt with keyword inserted
+            }
         ],
-        "max_tokens": max_tokens,
+        "max_tokens": max_tokens,  # You can increase or decrease depending on how long you want the article
+        "temperature": 0.7,  # Balanced creativity and structure
+        "top_p": 1.0,
+        "frequency_penalty": 0.2,
+        "presence_penalty": 0.1,
     }
 
     for attempt in range(1, retries + 1):
