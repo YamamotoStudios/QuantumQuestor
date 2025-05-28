@@ -66,7 +66,7 @@ def build_prompt(keyword):
     return (
         f'Generate a fully structured blog post about keyword:"{keyword}" for a tech and lifestyle site.\n\n'
         "Requirements:\n"
-        "- Length: You must write at least 1500 words of content. If this condition is not met, the task is incomplete. Do not stop early or summarize. Each major section (under <h2>) must include at least 2–3 paragraphs. Include examples, comparisons, and in-depth explanation in each part.\n"
+        "- Length: You must write at least 1500 words (not characters, it would be many, many more characters) of content. If this condition is not met, the task is incomplete. Do not stop early or summarize. Each major section (under <h2>) must include at least 2–3 paragraphs. Include examples, comparisons, and in-depth explanation in each part.\n"
         "- Cover both informational (explain concepts, how-tos) and transactional (product/service recommendations, CTAs) aspects of the topic.\n"
         "- Structure: Use logical, creative HTML structure with <h2>, <h3>, <p>, <ul>, <ol> as needed. No fixed template required.\n"
         "- Tone: Friendly, informative, and technically credible. Avoid first-person unless appropriate.\n"
