@@ -5,6 +5,7 @@ import psycopg2
 from datetime import datetime
 import time
 import json
+import re
 
 # Load environment variables for secure access
 DATABASE_URL = os.getenv("DB_CONNECTION_STRING")
@@ -65,6 +66,11 @@ def fetch_recent_keywords():
 def build_prompt(keyword):
     return (
         f'Generate a fully structured blog post about keyword:"{keyword}" for a tech and lifestyle site.\n\n'
+        "IMPORTANT:\n"
+        "- Do NOT include Markdown, explanations, or text outside the JSON.\n"
+        "- Output MUST be a single valid JSON object only, properly formatted and escaped.\n"
+        "- Warning: Ending early or skipping sections will result in rejection.\n"
+        "- Respond with raw JSON only — no markdown.\n"
         "Requirements:\n"
         "- Length: You must write at least 1500 words (not characters, it would be many, many more characters) of content. If this condition is not met, the task is incomplete. Do not stop early or summarize. Each major section (under <h2>) must include at least 2–3 paragraphs. Include examples, comparisons, and in-depth explanation in each part.\n"
         "- If the word count is under 1500, continue generating more content as a follow-up. Do not conclude the article until the total exceeds 1500 words. \n"
@@ -86,10 +92,7 @@ def build_prompt(keyword):
         "    • \"slug\"\n"
         "    • \"excerpt\"\n"
         "    • \"content\" – full HTML, with internal link placeholders and optional <script> JSON-LD schema blocks embedded (not visible text).\n\n"
-        "IMPORTANT:\n"
-        "- Do NOT include Markdown, explanations, or text outside the JSON.\n"
-        "- Output MUST be a single valid JSON object only, properly formatted and escaped.\n"
-        "- Warning: Ending early or skipping sections will result in rejection.\n"
+
     )
 
 
@@ -205,6 +208,9 @@ def main():
         print(f"Processing keyword: {keyword}")
         article = generate_article(keyword)
         try:
+            if article.strip().startswith("```json"):
+                article = re.sub(r"^```json\s*|\s*```$", "", article.strip())
+            
             article_data = json.loads(article)
             print("Title:", article_data["title"])
             print("Slug:", article_data["slug"])
