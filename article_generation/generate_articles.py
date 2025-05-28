@@ -208,7 +208,7 @@ def main():
             print("Slug:", article_data["slug"])
             print("Preview:", article_data["meta_description"])
         except json.JSONDecodeError as e:
-            print(f"GPT returned invalid JSON. You may want to retry or clean it up. {article_data}")
+            print(f"GPT returned invalid JSON. You may want to retry or clean it up. {article}")
         if article_data:
             response = publish_to_wordpress(
                 title=article_data["title"],
