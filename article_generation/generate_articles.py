@@ -64,7 +64,7 @@ def fetch_recent_keywords():
 
 def build_prompt(keyword):
     return (
-        'Generate a fully structured blog post about "{keyword}" for a tech and lifestyle site.\n\n'
+        f'Generate a fully structured blog post about keyword:"{keyword}" for a tech and lifestyle site.\n\n'
         "Requirements:\n"
         "- Length: Must be at least 1000 words and no more than 2000. Do not end early.\n"
         "- Cover both informational (explain concepts, how-tos) and transactional (product/service recommendations, CTAs) aspects of the topic.\n"
