@@ -67,6 +67,7 @@ def build_prompt(keyword):
         f'Generate a fully structured blog post about keyword:"{keyword}" for a tech and lifestyle site.\n\n'
         "Requirements:\n"
         "- Length: You must write at least 1500 words (not characters, it would be many, many more characters) of content. If this condition is not met, the task is incomplete. Do not stop early or summarize. Each major section (under <h2>) must include at least 2–3 paragraphs. Include examples, comparisons, and in-depth explanation in each part.\n"
+        "- If the word count is under 1500, continue generating more content as a follow-up. Do not conclude the article until the total exceeds 1500 words. \n"
         "- Cover both informational (explain concepts, how-tos) and transactional (product/service recommendations, CTAs) aspects of the topic.\n"
         "- Structure: Use logical, creative HTML structure with <h2>, <h3>, <p>, <ul>, <ol> as needed. No fixed template required.\n"
         "- Tone: Friendly, informative, and technically credible. Avoid first-person unless appropriate.\n"
@@ -88,12 +89,13 @@ def build_prompt(keyword):
         "IMPORTANT:\n"
         "- Do NOT include Markdown, explanations, or text outside the JSON.\n"
         "- Output MUST be a single valid JSON object only, properly formatted and escaped.\n"
+        "- Warning: Ending early or skipping sections will result in rejection.\n"
     )
 
 
 def build_openai_request(prompt, max_tokens):
     return {
-        "model": "gpt-4",
+        "model": "gpt-4o",
         "messages": [
             {
                 "role": "system",
@@ -147,7 +149,7 @@ def call_openai_api(data, headers, retries, delay, keyword):
     return None
 
 
-def generate_article(keyword, max_tokens=4500, retries=3, delay=5):
+def generate_article(keyword, max_tokens=7000, retries=3, delay=5):
     prompt = build_prompt(keyword)
     data = build_openai_request(prompt, max_tokens)
     headers = {
