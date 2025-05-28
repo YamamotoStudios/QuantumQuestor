@@ -66,7 +66,7 @@ def build_prompt(keyword):
     return (
         'Generate a fully structured blog post about "{keyword}" for a tech and lifestyle site.\n\n'
         "Requirements:\n"
-        "- Length: Target 1000–2000 words (~4500 tokens max).\n"
+        "- Length: must be at least 1000 words, at most 2000.\n"
         "- Cover both informational (explain concepts, how-tos) and transactional (product/service recommendations, CTAs) aspects of the topic.\n"
         "- Structure: Use logical, creative HTML structure with <h2>, <h3>, <p>, <ul>, <ol> as needed. No fixed template required.\n"
         "- Tone: Friendly, informative, and technically credible. Avoid first-person unless appropriate.\n"
@@ -78,7 +78,7 @@ def build_prompt(keyword):
         "- Slug: Derive from title (lowercase, hyphens, no special characters).\n"
         "- Excerpt: Write a 1–2 sentence teaser.\n"
         # "- Internal Links: Suggest 2–3 contextual internal links using descriptions like [Link: Guide to Quantum PCs].\n"
-        "- Structured Data: Optionally include JSON-LD inside <script type=\"application/ld+json\"> blocks for Article or FAQ schema. It must be valid JSON-LD and visually invisible.\n"
+        "- Structured Data: Optionally include JSON-LD inside <script type=\"application/ld+json\"> blocks for Article or FAQ schema. It must be valid JSON-LD and visually invisible.  It should be embedded in the content fields, using a script tag, as is standard practice. \n"
         "- Output only valid JSON with the following keys:\n"
         "    • \"title\"\n"
         "    • \"meta_description\"\n"
