@@ -64,17 +64,30 @@ def fetch_recent_keywords():
 
 def build_prompt(keyword):
     return (
-        f"Generate a fully structured blog post about \"{keyword}\" for a tech and lifestyle site.\n\n"
-        "Return your response as a valid JSON object only — no markdown, no explanation.\n\n"
-        "The JSON should contain the following keys:\n"
-        "  - \"title\": A compelling, SEO-optimized blog title\n"
-        "  - \"meta_description\": A ~150-character meta description containing the keyword\n"
-        "  - \"slug\": A URL-safe slug derived from the title (e.g. 'quantum-ai-for-gamers')\n"
-        "  - \"excerpt\": A short summary or teaser of the article (1 to 2 sentences)\n"
-        "  - \"content\": The full HTML blog content (with headings, paragraphs, and internal links described if relevant, SEO conscious and optimized.)\n\n"
-        "The tone should be friendly, informative, and technically credible. Format headings using <h2>, <h3> etc. inside the content field.\n"
-        "If relevant, suggest 2 to 3 internal links by describing where they would go (but you do not need to insert real URLs).\n\n"
-        "Output ONLY a valid JSON object — no prose, no commentary."
+        'Generate a fully structured blog post about "{keyword}" for a tech and lifestyle site.\n\n'
+        "Requirements:\n"
+        "- Length: Target 1000–2000 words (~4500 tokens max).\n"
+        "- Cover both informational (explain concepts, how-tos) and transactional (product/service recommendations, CTAs) aspects of the topic.\n"
+        "- Structure: Use logical, creative HTML structure with <h2>, <h3>, <p>, <ul>, <ol> as needed. No fixed template required.\n"
+        "- Tone: Friendly, informative, and technically credible. Avoid first-person unless appropriate.\n"
+        "- SEO: Optimize for search. Include target keyword naturally in:\n"
+        "    • title\n"
+        "    • meta_description (~150 characters)\n"
+        "    • content headings and early paragraphs\n"
+        "- Use semantic keywords and related terms to improve topical coverage.\n"
+        "- Slug: Derive from title (lowercase, hyphens, no special characters).\n"
+        "- Excerpt: Write a 1–2 sentence teaser.\n"
+        # "- Internal Links: Suggest 2–3 contextual internal links using descriptions like [Link: Guide to Quantum PCs].\n"
+        "- Structured Data: Optionally include JSON-LD inside <script type=\"application/ld+json\"> blocks for Article or FAQ schema. It must be valid JSON-LD and visually invisible.\n"
+        "- Output only valid JSON with the following keys:\n"
+        "    • \"title\"\n"
+        "    • \"meta_description\"\n"
+        "    • \"slug\"\n"
+        "    • \"excerpt\"\n"
+        "    • \"content\" – full HTML, with internal link placeholders and optional <script> JSON-LD schema blocks embedded.\n\n"
+        "IMPORTANT:\n"
+        "- Do NOT include Markdown, explanations, or text outside the JSON.\n"
+        "- Output MUST be a single valid JSON object only, properly formatted and escaped.\n"
     )
 
 
@@ -134,7 +147,7 @@ def call_openai_api(data, headers, retries, delay, keyword):
     return None
 
 
-def generate_article(keyword, max_tokens=1500, retries=3, delay=5):
+def generate_article(keyword, max_tokens=4500, retries=3, delay=5):
     prompt = build_prompt(keyword)
     data = build_openai_request(prompt, max_tokens)
     headers = {
