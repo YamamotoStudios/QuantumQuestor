@@ -71,6 +71,7 @@ def build_prompt(keyword):
         "- Output MUST be a single valid JSON object only, properly formatted and escaped.\n"
         "- Warning: Ending early or skipping sections will result in rejection.\n"
         "- Respond with raw JSON only — no markdown.\n"
+        "- If any keywords are of a specific year or date, it must instead be assumed its this year instead, to give an up to date and relevant article.  If its concerning older news, then its an incomplete article.\n"
         "Requirements:\n"
         "- Length: You must write at least 1500 words (not characters, it would be many, many more characters) of content. If this condition is not met, the task is incomplete. Do not stop early or summarize. Each major section (under <h2>) must include at least 2–3 paragraphs. Include examples, comparisons, and in-depth explanation in each part.\n"
         "- If the word count is under 1500, continue generating more content as a follow-up. Do not conclude the article until the total exceeds 1500 words. \n"
