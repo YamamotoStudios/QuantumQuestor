@@ -10,37 +10,10 @@ import re
 # Load environment variables for secure access
 DATABASE_URL = os.getenv("DB_CONNECTION_STRING")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-WORDPRESS_CLIENT_ID = os.getenv("WORDPRESS_CLIENT_ID")
-WORDPRESS_CLIENT_SECRET = os.getenv("WORDPRESS_CLIENT_SECRET")
 WORDPRESS_USERNAME = os.getenv("WORDPRESS_USERNAME")
 WORDPRESS_PASSWORD = os.getenv("WORDPRESS_PASSWORD")
 # e.g., "your-site.wordpress.com"
 WORDPRESS_SITE_URL = os.getenv("WORDPRESS_SITE_URL")
-
-# Generate a WordPress OAuth token
-
-
-def get_wordpress_token():
-    try:
-        url = "https://public-api.wordpress.com/oauth2/token"
-        data = {
-            "client_id": WORDPRESS_CLIENT_ID,
-            "client_secret": WORDPRESS_CLIENT_SECRET,
-            "username": WORDPRESS_USERNAME,
-            "password": WORDPRESS_PASSWORD,
-            "grant_type": "password",
-        }
-
-        print(f"data: {data}")
-
-        response = requests.post(url, data=data)
-        response.raise_for_status()
-        token = response.json()["access_token"]
-        return token
-    except Exception as e:
-        print(f"Error generating WordPress token: {e}")
-        return None
-
 
 def fetch_recent_keywords():
     try:
@@ -72,6 +45,7 @@ def build_prompt(keyword):
         "- Warning: Ending early or skipping sections will result in rejection.\n"
         "- Respond with raw JSON only — no markdown.\n"
         "- If any keywords are of a specific year or date, it must instead be assumed its this year instead, to give an up to date and relevant article.  If its concerning older news, then its an incomplete article.\n"
+        "- There must be at least 2 links to external resources.\n"
         "Requirements:\n"
         "- Length: You must write at least 1500 words (not characters, it would be many, many more characters) of content. If this condition is not met, the task is incomplete. Do not stop early or summarize. Each major section (under <h2>) must include at least 2–3 paragraphs. Include examples, comparisons, and in-depth explanation in each part.\n"
         "- If the word count is under 1500, continue generating more content as a follow-up. Do not conclude the article until the total exceeds 1500 words. \n"
@@ -164,8 +138,8 @@ def generate_article(keyword, max_tokens=7000, retries=3, delay=5):
     return call_openai_api(data, headers, retries, delay, keyword)
 
 
-def publish_to_wordpress(title, content, token, excerpt=None, slug=None, status="draft"):
-    url = f"https://public-api.wordpress.com/wp/v2/sites/{WORDPRESS_SITE_URL}/posts"
+def publish_to_wordpress(title, content, site_url, excerpt=None, slug=None, status="draft"):
+    url = "https://quantumquestor.com/wp-json/wp/v2/posts"
 
     data = {
         "title": title,
@@ -178,17 +152,19 @@ def publish_to_wordpress(title, content, token, excerpt=None, slug=None, status=
     if slug:
         data["slug"] = slug
 
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json",
-    }
-
     try:
-        response = requests.post(url, json=data, headers=headers)
+        response = requests.post(
+            url,
+            json=data,
+            auth=HTTPBasicAuth(WORDPRESS_USERNAME, WORDPRESS_PASSWORD),
+            headers={"Content-Type": "application/json"}
+        )
         response.raise_for_status()
         return response.json()
     except Exception as e:
         print(f"Error publishing article '{title}': {e}")
+        if hasattr(e, 'response') and e.response is not None:
+            print(f"Server response: {e.response.text}")
         return None
 
 
