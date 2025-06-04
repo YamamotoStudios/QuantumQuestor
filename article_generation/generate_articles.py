@@ -12,8 +12,6 @@ DATABASE_URL = os.getenv("DB_CONNECTION_STRING")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 WORDPRESS_USERNAME = os.getenv("WORDPRESS_USERNAME")
 WORDPRESS_PASSWORD = os.getenv("WORDPRESS_PASSWORD")
-# e.g., "your-site.wordpress.com"
-WORDPRESS_SITE_URL = os.getenv("WORDPRESS_SITE_URL")
 
 def fetch_recent_keywords():
     try:
@@ -138,7 +136,7 @@ def generate_article(keyword, max_tokens=7000, retries=3, delay=5):
     return call_openai_api(data, headers, retries, delay, keyword)
 
 
-def publish_to_wordpress(title, content, site_url, excerpt=None, slug=None, status="draft"):
+def publish_to_wordpress(title, content, excerpt=None, slug=None, status="draft"):
     url = "https://quantumquestor.com/wp-json/wp/v2/posts"
 
     data = {
@@ -169,12 +167,6 @@ def publish_to_wordpress(title, content, site_url, excerpt=None, slug=None, stat
 
 
 def main():
-    # Generate WordPress OAuth token
-    token = get_wordpress_token()
-    if not token:
-        print("Failed to obtain WordPress token. Exiting.")
-        return
-
     # Fetch keywords
     keywords = fetch_recent_keywords()
     if not keywords:
@@ -199,7 +191,6 @@ def main():
             response = publish_to_wordpress(
                 title=article_data["title"],
                 content=article_data["content"],
-                token=token,
                 excerpt=article_data.get("excerpt"),
                 slug=article_data.get("slug")
             )
