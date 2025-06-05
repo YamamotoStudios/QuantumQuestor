@@ -6,6 +6,8 @@ from datetime import datetime
 import time
 import json
 import re
+import requests
+from requests.auth import HTTPBasicAuth
 
 # Load environment variables for secure access
 DATABASE_URL = os.getenv("DB_CONNECTION_STRING")
