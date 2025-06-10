@@ -57,9 +57,8 @@ def build_prompt(keyword):
         "    • \"excerpt\" (1–2 sentence teaser)\n"
         "    • \"content\" (full HTML of the article)\n"
         "- Use the keyword naturally in the **title**, **intro**, and **headings**. Avoid keyword stuffing.\n"
-        "- Include **1–2 external citations** (real or realistic URLs okay).\n"
-        "- Include a **placeholder internal link** (e.g., [Link: Best Monitors for Retro Gaming])\n"
-        "- Include optional **<script type=\"application/ld+json\">** block with valid Article schema at the end of content.\n"
+        "- Include **1–2 external citations** (real links to a real website).\n"
+        "- MUST Include **<script type=\"application/ld+json\">** block with valid Article schema at the end of content.\n"
         "=== IMPORTANT STYLE NOTES ===\n"
         "- Avoid all AI tropes (e.g. 'In today’s fast-paced world…')\n"
         "- Avoid repeating phrases, overuse of transition words, or empty conclusions.\n"
@@ -75,7 +74,7 @@ def build_openai_request(prompt, max_tokens):
             {
                 "role": "system",
                 "content": (
-                    "IMPORTANT: you like to write long, indepth, conversational, and detailed articles, going into depth, never summarising, not instead of. "
+                    "IMPORTANT: you like to write long, indepth, conversational, and detailed articles, going into depth, but summarising and conluding in the final paragraph. "
                     "You are an experienced SEO content writer for a niche blog. "
                     "Your job is to write compelling, keyword-optimized articles that rank well on Google, "
                     "engage human readers, and follow best SEO practices without keyword stuffing."
@@ -90,7 +89,8 @@ def build_openai_request(prompt, max_tokens):
         "temperature": 0.7,
         "top_p": 1.0,
         "frequency_penalty": 0.2,
-        "presence_penalty": 0.1,
+        "presence_penalty": 0.1,]
+        "stop": ["###", "\n\n##"]  # helps catch overly long digressions
     }
 
 
