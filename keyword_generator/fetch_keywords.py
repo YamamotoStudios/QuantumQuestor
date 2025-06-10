@@ -259,10 +259,10 @@ def fetch_and_analyze_keywords():
         CATEGORIES = ["lifestyle", "ai_ethics", "engineering", "gaming", "crossover"]
         final_keywords = select_keywords_by_category_distribution(category_buckets, CATEGORIES)
 
-        save_filtered_keywords(conn, unique_keywords)
+        save_filtered_keywords(conn, final_keywords)
 
         # Add selected keywords to the blacklist
-        blacklisted_now = [kw["text"].strip().lower() for kw in unique_keywords]
+        blacklisted_now = [kw["text"].strip().lower() for kw in final_keywords]
         for kw in blacklisted_now:
             print(f"Blacklisting keyword: '{kw}'")
         insert_into_blacklist(conn, blacklisted_now)
@@ -270,7 +270,7 @@ def fetch_and_analyze_keywords():
 
         print(f"Saving results to {OUTPUT_FILE}...")
         with open(OUTPUT_FILE, "w") as f:
-            json.dump(unique_keywords[:10], f, indent=2)
+            json.dump(final_keywords[:10], f, indent=2)
 
     finally:
         conn.close()
