@@ -38,36 +38,33 @@ def fetch_recent_keywords():
 
 def build_prompt(keyword):
     return (
-        f'Generate a fully structured blog post about keyword:"{keyword}" for a tech and lifestyle site.\n\n'
-        "IMPORTANT:\n"
-        "- Do NOT include Markdown, explanations, or text outside the JSON.\n"
-        "- Output MUST be a single valid JSON object only, properly formatted and escaped.\n"
-        "- Warning: Ending early or skipping sections will result in rejection.\n"
-        "- Respond with raw JSON only — no markdown.\n"
-        "- If any keywords are of a specific year or date, it must instead be assumed its this year instead, to give an up to date and relevant article.  If its concerning older news, then its an incomplete article.\n"
-        "- There must be at least 2 links to external resources.\n"
-        "Requirements:\n"
-        "- Length: You must write at least 1500 words (not characters, it would be many, many more characters) of content. If this condition is not met, the task is incomplete. Do not stop early or summarize. Each major section (under <h2>) must include at least 2–3 paragraphs. Include examples, comparisons, and in-depth explanation in each part.\n"
-        "- If the word count is under 1500, continue generating more content as a follow-up. Do not conclude the article until the total exceeds 1500 words. \n"
-        "- Cover both informational (explain concepts, how-tos) and transactional (product/service recommendations, CTAs) aspects of the topic.\n"
-        "- Structure: Use logical, creative HTML structure with <h2>, <h3>, <p>, <ul>, <ol> as needed. No fixed template required.\n"
-        "- Tone: Friendly, informative, and technically credible. Avoid first-person unless appropriate.\n"
-        "- SEO: Optimize for search. Include target keyword naturally in:\n"
-        "    • title\n"
-        "    • meta_description (~150 characters)\n"
-        "    • content headings and early paragraphs\n"
-        "- Use semantic keywords and related terms to improve topical coverage.\n"
-        "- Slug: Derive from title (lowercase, hyphens, no special characters).\n"
-        "- Excerpt: Write a 1–2 sentence teaser.\n"
-        # "- Internal Links: Suggest 2–3 contextual internal links using descriptions like [Link: Guide to Quantum PCs].\n"
-        "- Structured Data: Optionally include JSON-LD inside <script type=\"application/ld+json\"> blocks for Article or FAQ schema. It must be valid JSON-LD and must not appear as visible text on the page — embed it properly within the HTML content.\n"
-        "- Output only valid JSON with the following keys:\n"
+        f'Write a long-form, blog-style article about keyword: "{keyword}" for a tech and lifestyle site that values expert depth and a conversational tone.\n\n'
+        "=== CONTENT GOALS ===\n"
+        "- Write at least **1,800–2,000 words** of in-depth content. Aim to truly educate, engage, or persuade a curious reader — not just summarise.\n"
+        "- Use a **natural, human tone**. Avoid robotic phrasing. Write like an experienced writer would: clear, informative, occasionally witty.\n"
+        "- Go beyond surface-level facts. Include:\n"
+        "  • Examples or case studies\n"
+        "  • First-hand style insights (e.g. ‘One thing I’ve found...’)\n"
+        "  • Pros, cons, comparisons, and counterpoints\n"
+        "  • References to real tools, platforms, events, or concepts\n"
+        "- Structure the post logically using <h2> and <h3> headers. Use <ul>, <ol>, and <p> for clarity.\n"
+        "- DO NOT stop until the article hits a **minimum** of 1,800 words. If needed, keep expanding thoughtfully until that’s achieved.\n"
+        "=== SEO + STRUCTURE ===\n"
+        "- Include these JSON keys:\n"
         "    • \"title\"\n"
-        "    • \"meta_description\"\n"
-        "    • \"slug\"\n"
-        "    • \"excerpt\"\n"
-        "    • \"content\" – full HTML, with internal link placeholders and optional <script> JSON-LD schema blocks embedded (not visible text).\n\n"
-
+        "    • \"meta_description\" (~150 characters)\n"
+        "    • \"slug\" (SEO-friendly)\n"
+        "    • \"excerpt\" (1–2 sentence teaser)\n"
+        "    • \"content\" (full HTML of the article)\n"
+        "- Use the keyword naturally in the **title**, **intro**, and **headings**. Avoid keyword stuffing.\n"
+        "- Include **1–2 external citations** (real or realistic URLs okay).\n"
+        "- Include a **placeholder internal link** (e.g., [Link: Best Monitors for Retro Gaming])\n"
+        "- Include optional **<script type=\"application/ld+json\">** block with valid Article schema at the end of content.\n"
+        "=== IMPORTANT STYLE NOTES ===\n"
+        "- Avoid all AI tropes (e.g. 'In today’s fast-paced world…')\n"
+        "- Avoid repeating phrases, overuse of transition words, or empty conclusions.\n"
+        "- Focus on delivering original, **thought-provoking** content.\n"
+        "- Output must be a single valid JSON object. DO NOT include Markdown or notes outside the JSON.\n"
     )
 
 
@@ -78,7 +75,7 @@ def build_openai_request(prompt, max_tokens):
             {
                 "role": "system",
                 "content": (
-                    "IMPORTANT: you like to write long, indepth, detailed articles, going into depth, and only summarising in additiona to long description, not instead of. "
+                    "IMPORTANT: you like to write long, indepth, conversational, and detailed articles, going into depth, never summarising, not instead of. "
                     "You are an experienced SEO content writer for a niche blog. "
                     "Your job is to write compelling, keyword-optimized articles that rank well on Google, "
                     "engage human readers, and follow best SEO practices without keyword stuffing."
