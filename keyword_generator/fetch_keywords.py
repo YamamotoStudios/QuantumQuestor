@@ -109,19 +109,22 @@ def save_filtered_keywords(conn, filtered_keywords):
             """, (keyword["text"], keyword["similarity"], keyword["score"], datetime.utcnow()))
         conn.commit()
 
-def fetch_blacklist(conn):
+def fetch_blacklist(conn, expiry_days=90):
     with conn.cursor() as cur:
-        cur.execute("SELECT term FROM blacklist")
+        cur.execute("""
+            SELECT term FROM blacklist
+            WHERE created_at >= %s
+        """, (expiry_cutoff,))
         return set(row[0].strip().lower() for row in cur.fetchall())
 
 def insert_into_blacklist(conn, keywords):
     with conn.cursor() as cur:
         for kw in keywords:
             cur.execute("""
-                INSERT INTO blacklist (term)
-                VALUES (%s)
+                INSERT INTO blacklist (term, created_at)
+                VALUES (%s, %s)
                 ON CONFLICT (term) DO NOTHING
-            """, (kw.lower(),))
+            """, (kw.lower(), datetime.utcnow()))
         conn.commit()
 
 def oldness_factor(item, max_age_days=730):
