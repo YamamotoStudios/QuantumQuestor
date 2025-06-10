@@ -128,11 +128,6 @@ def insert_into_blacklist(conn, keywords):
             """, (kw.lower(), datetime.utcnow()))
         conn.commit()
 
-def oldness_factor(item, max_age_days=730):
-    # Assume item["created_at"] is a datetime object
-    age_days = (datetime.utcnow() - item["created_at"]).days
-    return min(age_days / max_age_days, 1.0)
-
 def fetch_and_analyze_keywords():
     conn = psycopg2.connect(DB_CONNECTION_STRING)
     try:
@@ -211,7 +206,7 @@ def fetch_and_analyze_keywords():
         max_volume = max(item["volume"] for item in filtered_data)
         for item, similarity in zip(filtered_data, similarities):
             item["similarity"] = similarity
-            item["score"] = 0.4 * similarity + 0.3 * item["trend"] + 0.2 * (item["volume"] / max_volume) + 0.1 * (1 - oldness_factor(item))
+            item["score"] = 0.5 * similarity + 0.4 * item["trend"] + 0.1 * (item["volume"] / max_volume)
 
         sorted_keywords = sorted(filtered_data, key=lambda x: x["score"], reverse=True)
         sorted_keywords = adjust_score_for_repetition(sorted_keywords)
