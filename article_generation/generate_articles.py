@@ -40,7 +40,7 @@ def build_prompt(keyword):
     return (
         f'Write a long-form, blog-style article about keyword: "{keyword}" for a tech and lifestyle site that values expert depth and a conversational tone.\n\n'
         "=== CONTENT GOALS ===\n"
-        "- Write at least **1,800–2,000 words** of in-depth content. Aim to truly educate, engage, or persuade a curious reader — not just summarise.\n"
+        "- Write at least **1,800–2,000 words** of in-depth content, which according to the Flesch-Kincaid scale is at least easy to read. Aim to truly educate, engage, or persuade a curious reader — not just summarise, in fact avoid summarising.\n"
         "- Use a **natural, human tone**. Avoid robotic phrasing. Write like an experienced writer would: clear, informative, occasionally witty.\n"
         "- Go beyond surface-level facts. Include:\n"
         "  • Examples or case studies\n"
