@@ -110,6 +110,7 @@ def save_filtered_keywords(conn, filtered_keywords):
         conn.commit()
 
 def fetch_blacklist(conn, expiry_days=90):
+    expiry_cutoff = datetime.utcnow() - timedelta(days=expiry_days)
     with conn.cursor() as cur:
         cur.execute("""
             SELECT term FROM blacklist
