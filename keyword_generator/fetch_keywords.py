@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 import requests
 from collections import Counter
+from collections import defaultdict
 import os
 from concurrent.futures import ThreadPoolExecutor
 import time
@@ -128,6 +129,40 @@ def insert_into_blacklist(conn, keywords):
             """, (kw.lower(), datetime.utcnow()))
         conn.commit()
 
+def group_keywords_by_category(keywords):
+    category_buckets = defaultdict(list)
+    for kw in keywords:
+        category = kw.get("category", "uncategorized")
+        category_buckets[category].append(kw)
+    return category_buckets
+
+def select_keywords_by_category_distribution(
+    category_buckets,
+    categories,
+    per_category_limit=2,
+    total_limit=10
+):
+    final_keywords = []
+    seen_texts = set()
+
+    for cat in categories:
+        top_items = sorted(category_buckets.get(cat, []), key=lambda x: x["score"], reverse=True)[:per_category_limit]
+        for kw in top_items:
+            norm_text = kw["text"].strip().lower()
+            if norm_text not in seen_texts and len(final_keywords) < total_limit:
+                final_keywords.append(kw)
+                seen_texts.add(norm_text)
+
+    # Fallback to fill up remaining slots
+    all_keywords = [kw for bucket in category_buckets.values() for kw in bucket]
+    for kw in sorted(all_keywords, key=lambda x: x["score"], reverse=True):
+        norm_text = kw["text"].strip().lower()
+        if norm_text not in seen_texts and len(final_keywords) < total_limit:
+            final_keywords.append(kw)
+            seen_texts.add(norm_text)
+
+    return final_keywords
+
 def fetch_and_analyze_keywords():
     conn = psycopg2.connect(DB_CONNECTION_STRING)
     try:
@@ -142,18 +177,24 @@ def fetch_and_analyze_keywords():
             combined_data = []
             print("Fetching data concurrently for all seed keywords...")
             with conn.cursor() as cur:
-                cur.execute("SELECT keyword FROM seed_keywords")
-                seed_keywords = [row[0] for row in cur.fetchall()]
+                cur.execute("SELECT keyword, category FROM seed_keywords")
+                seed_rows = cur.fetchall()
+            
+            seed_keyword_category_map = {row[0].strip().lower(): row[1] for row in seed_rows}
+            seed_keywords = list(seed_keyword_category_map.keys())
 
             def fetch_data_for_seed(seed):
                 try:
-                    keysuggest_data = fetch_keywords_from_api(
-                        "keysuggest", {"keyword": seed, "location": "GB", "lang": "en"})
-                    globalkey_data = fetch_keywords_from_api(
-                        "globalkey", {"keyword": seed, "lang": "en"})
-                    topkeys_data = fetch_keywords_from_api(
-                        "topkeys", {"keyword": seed, "location": "GB", "lang": "en"})
-                    return keysuggest_data + globalkey_data + topkeys_data
+                    category = seed_keyword_category_map.get(seed.lower(), "uncategorized")
+                    keysuggest_data = fetch_keywords_from_api("keysuggest", {"keyword": seed, "location": "GB", "lang": "en"})
+                    globalkey_data = fetch_keywords_from_api("globalkey", {"keyword": seed, "lang": "en"})
+                    topkeys_data = fetch_keywords_from_api("topkeys", {"keyword": seed, "location": "GB", "lang": "en"})
+            
+                    combined = keysuggest_data + globalkey_data + topkeys_data
+                    for item in combined:
+                        item["seed_keyword"] = seed
+                        item["category"] = category
+                    return combined
                 except Exception as e:
                     print(f"Error fetching data for seed '{seed}': {e}")
                     return []
@@ -211,18 +252,12 @@ def fetch_and_analyze_keywords():
         sorted_keywords = sorted(filtered_data, key=lambda x: x["score"], reverse=True)
         sorted_keywords = adjust_score_for_repetition(sorted_keywords)
 
-        clusters = cluster_keywords(sorted_keywords, num_clusters=10)
-        unique_keywords = select_from_clusters(clusters)
-
-        # Ensure we return exactly 10
-        unique_texts = set(kw["text"].strip().lower() for kw in unique_keywords)
-        for kw in sorted_keywords:
-            text = kw["text"].strip().lower()
-            if len(unique_keywords) >= 10:
-                break
-            if text not in unique_texts:
-                unique_keywords.append(kw)
-                unique_texts.add(text)
+        # Step 1: Group keywords by category
+        category_buckets = group_keywords_by_category(sorted_keywords)
+        
+        # Step 2: Select top 10, balanced by your seed-defined categories
+        CATEGORIES = ["lifestyle", "ai_ethics", "engineering", "gaming", "crossover"]
+        final_keywords = select_keywords_by_category_distribution(category_buckets, CATEGORIES)
 
         save_filtered_keywords(conn, unique_keywords)
 
