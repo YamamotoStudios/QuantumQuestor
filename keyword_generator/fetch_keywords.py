@@ -244,6 +244,10 @@ def fetch_and_analyze_keywords():
         print("Keyword category distribution (pre-score):")
         print(Counter([k['category'] for k in filtered_data]))
 
+        print("\nSeeds and their categories:")
+        for seed, cat in seed_keyword_category_map.items():
+            print(f"{cat.ljust(12)} | {seed}")
+
         texts = [item["text"] for item in filtered_data]
         print("Starting semantic similarity analysis...")
         similarities = calculate_similarity_batch(seed_keywords, texts)
