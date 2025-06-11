@@ -35,16 +35,29 @@ def fetch_keywords_from_api(endpoint, params):
         "x-rapidapi-host": RAPIDAPI_HOST,
         "x-rapidapi-key": RAPIDAPI_KEY,
     }
+
     try:
         response = requests.get(url, headers=headers, params=params)
+        
+        # Log response body on error
+        if response.status_code == 429:
+            print(f"⚠️ Rate limited (429) on {endpoint} for params {params}")
+            print(f"🔁 Headers: {response.headers}")
+            raise requests.exceptions.RequestException("Rate limit hit (429)")
+
         response.raise_for_status()
+
         data = response.json()
-        if isinstance(data, dict):
-            data = [data]
-        return data
+        return data if isinstance(data, list) else [data]
+
     except requests.exceptions.RequestException as e:
-        print(f"Error fetching data from {endpoint}: {e}")
-        return []
+        print(f"❌ Error fetching {endpoint} with params {params}: {e}")
+        try:
+            print(f"📦 Response content: {response.text}")
+        except NameError:
+            print("📦 No response object available.")
+        raise  # <-- This is the key change
+
 
 
 def calculate_similarity_batch(seed_keywords, texts):
