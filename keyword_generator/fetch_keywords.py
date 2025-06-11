@@ -238,6 +238,7 @@ def fetch_and_analyze_keywords():
         # Flatten into final list
         filtered_data = []
         for cat_items in filtered_by_category.values():
+            filtered_data.extend(cat_items[:CATEGORY_MINIMUM])
 
         print(f"{len(filtered_data)} keywords passed initial filters.")
 
