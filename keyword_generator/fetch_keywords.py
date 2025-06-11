@@ -199,7 +199,7 @@ def fetch_and_analyze_keywords():
                     print(f"Error fetching data for seed '{seed}': {e}")
                     return []
 
-            with ThreadPoolExecutor(max_workers=3) as executor:
+            with ThreadPoolExecutor(max_workers=1) as executor:
                 combined_data_lists = list(executor.map(
                     fetch_data_for_seed, seed_keywords))
                 combined_data = [
