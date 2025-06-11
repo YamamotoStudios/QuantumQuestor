@@ -240,6 +240,10 @@ def fetch_and_analyze_keywords():
             print("No keywords passed the filters.")
             return
 
+        from collections import Counter
+        print("Keyword category distribution (pre-score):")
+        print(Counter([k['category'] for k in filtered_data]))
+
         texts = [item["text"] for item in filtered_data]
         print("Starting semantic similarity analysis...")
         similarities = calculate_similarity_batch(seed_keywords, texts)
