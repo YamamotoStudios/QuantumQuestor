@@ -163,6 +163,33 @@ def select_keywords_by_category_distribution(
 
     return final_keywords
 
+def fetch_data_for_seed_with_backoff(seed, category, max_retries=6, base_delay=2):
+    for attempt in range(max_retries):
+        try:
+            print(f"\nFetching for seed: '{seed}' (attempt {attempt + 1})")
+
+            results = (
+                fetch_keywords_from_api("keysuggest", {"keyword": seed, "location": "GB", "lang": "en"}) +
+                fetch_keywords_from_api("globalkey", {"keyword": seed, "lang": "en"}) +
+                fetch_keywords_from_api("topkeys", {"keyword": seed, "location": "GB", "lang": "en"})
+            )
+
+            # Tag category + seed
+            for item in results:
+                item["seed_keyword"] = seed
+                item["category"] = category
+
+            print(f"✅ Got {len(results)} results for '{seed}'")
+            return results
+
+        except Exception as e:
+            print(f"⚠️ Error on attempt {attempt + 1} for '{seed}': {e}")
+            time.sleep(base_delay * (attempt + 1))  # Exponential backoff
+
+    print(f"❌ Failed all {max_retries} attempts for '{seed}'")
+    return []
+
+
 def fetch_and_analyze_keywords():
     conn = psycopg2.connect(DB_CONNECTION_STRING)
     try:
@@ -199,9 +226,13 @@ def fetch_and_analyze_keywords():
                     print(f"Error fetching data for seed '{seed}': {e}")
                     return []
 
-            with ThreadPoolExecutor(max_workers=1) as executor:
-                combined_data_lists = list(executor.map(
-                    fetch_data_for_seed, seed_keywords))
+            combined_data_lists = []
+            
+            for seed in seed_keywords:
+                category = seed_keyword_category_map.get(seed.lower(), "uncategorized")
+                results = fetch_data_for_seed_with_backoff(seed, category)
+                combined_data_lists.append(results)
+
                 combined_data = [
                     item for sublist in combined_data_lists for item in sublist]
 
