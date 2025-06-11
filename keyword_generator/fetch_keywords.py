@@ -186,11 +186,11 @@ def fetch_and_analyze_keywords():
             def fetch_data_for_seed(seed):
                 try:
                     category = seed_keyword_category_map.get(seed.lower(), "uncategorized")
-                    keysuggest_data = fetch_keywords_from_api("keysuggest", {"keyword": seed, "location": "GB", "lang": "en"})
-                    globalkey_data = fetch_keywords_from_api("globalkey", {"keyword": seed, "lang": "en"})
-                    topkeys_data = fetch_keywords_from_api("topkeys", {"keyword": seed, "location": "GB", "lang": "en"})
-            
-                    combined = keysuggest_data + globalkey_data + topkeys_data
+                    combined = (
+                        fetch_keywords_from_api("keysuggest", {"keyword": seed, "location": "GB", "lang": "en"}) +
+                        fetch_keywords_from_api("globalkey", {"keyword": seed, "lang": "en"}) +
+                        fetch_keywords_from_api("topkeys", {"keyword": seed, "location": "GB", "lang": "en"})
+                    )
                     for item in combined:
                         item["seed_keyword"] = seed
                         item["category"] = category
@@ -211,20 +211,33 @@ def fetch_and_analyze_keywords():
         filtered_data = []
         skipped_blacklisted = []
         
+        filtered_by_category = defaultdict(list)
+        CATEGORY_MINIMUM = 15  # How many from each category you *try* to keep
+        
         for item in combined_data:
             text = item.get("text", "").strip().lower()
+            category = item.get("category", "uncategorized")
+        
             if text in blacklist:
-                skipped_blacklisted.append(text)
-                continue  # Skip early, no need to check other filters
-            
+                continue
+        
+            # Loosen filtering for underrepresented categories
+            volume_threshold = 50 if category in ["ai_ethics", "engineering", "crossover"] else 100
+            competition_ok = item.get("competition_level", "").lower() in ["low", "medium"]
+            trend_ok = item.get("trend", 0) >= 0
+            phrase_ok = len(text.split()) >= 2
+        
             if (
-                text not in blacklist and
-                item.get("volume", 0) > 100 and
-                item.get("competition_level", "").lower() in ["low", "medium"] and
-                item.get("trend", 0) >= 0 and
-                len(text.split()) >= 2
+                item.get("volume", 0) > volume_threshold and
+                competition_ok and
+                trend_ok and
+                phrase_ok
             ):
-                filtered_data.append(item)
+                filtered_by_category[category].append(item)
+        
+        # Flatten into final list
+        filtered_data = []
+        for cat_items in filtered_by_category.values():
 
         print(f"{len(filtered_data)} keywords passed initial filters.")
 
