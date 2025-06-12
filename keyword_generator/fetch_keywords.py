@@ -116,11 +116,14 @@ def fetch_cached_keywords(conn):
 
 def save_filtered_keywords(conn, filtered_keywords):
     with conn.cursor() as cur:
-        for keyword in filtered_keywords:
-            cur.execute("""
-                INSERT INTO filtered_keywords (text, similarity, score, created_at)
-                VALUES (%s, %s, %s, %s)
-            """, (keyword["text"], keyword["similarity"], keyword["score"], datetime.utcnow()))
+        values = [
+            (kw["text"], kw["similarity"], kw["score"], datetime.utcnow())
+            for kw in filtered_keywords
+        ]
+        cur.executemany("""
+            INSERT INTO filtered_keywords (text, similarity, score, created_at)
+            VALUES (%s, %s, %s, %s)
+        """, values)
         conn.commit()
 
 def fetch_blacklist(conn, expiry_days=90):
