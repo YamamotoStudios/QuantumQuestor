@@ -234,22 +234,8 @@ def fetch_and_analyze_keywords():
             seed_keyword_category_map = {row[0].strip().lower(): row[1] for row in seed_rows}
             seed_keywords = list(seed_keyword_category_map.keys())
 
-            def fetch_data_for_seed(seed):
-                try:
-                    category = seed_keyword_category_map.get(seed.lower(), "uncategorized")
-                    combined = (
-                        fetch_keywords_from_api("keysuggest", {"keyword": seed, "location": "GB", "lang": "en"}) +
-                        fetch_keywords_from_api("globalkey", {"keyword": seed, "lang": "en"}) +
-                        fetch_keywords_from_api("topkeys", {"keyword": seed, "location": "GB", "lang": "en"})
-                    )
-                    for item in combined:
-                        item["seed_keyword"] = seed
-                        item["category"] = category
-                    return combined
-                except Exception as e:
-                    print(f"Error fetching data for seed '{seed}': {e}")
-                    return []
-
+            conn.close()
+            
             combined_data_lists = []
             
             for seed in seed_keywords:
@@ -336,6 +322,7 @@ def fetch_and_analyze_keywords():
         CATEGORIES = ["lifestyle", "ai_ethics", "engineering", "gaming", "crossover"]
         final_keywords = select_keywords_by_category_distribution(category_buckets, CATEGORIES)
 
+        conn = psycopg2.connect(DB_CONNECTION_STRING)
         save_filtered_keywords(conn, final_keywords)
 
         # Add selected keywords to the blacklist
