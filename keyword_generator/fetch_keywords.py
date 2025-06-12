@@ -176,18 +176,23 @@ def select_keywords_by_category_distribution(
 
     return final_keywords
 
-def fetch_data_for_seed_with_backoff(seed, category, max_retries=6, base_delay=2):
+def fetch_data_for_seed_with_backoff(seed, category, max_retries=6, base_delay=6):
     for attempt in range(max_retries):
         try:
             print(f"\nFetching for seed: '{seed}' (attempt {attempt + 1})")
 
-            results = (
-                fetch_keywords_from_api("keysuggest", {"keyword": seed, "location": "GB", "lang": "en"}) +
-                fetch_keywords_from_api("globalkey", {"keyword": seed, "lang": "en"}) +
-                fetch_keywords_from_api("topkeys", {"keyword": seed, "location": "GB", "lang": "en"})
-            )
+            # Throttle at safe 6s spacing between requests
+            results = []
+            for endpoint, params in [
+                ("keysuggest", {"keyword": seed, "location": "GB", "lang": "en"}),
+                ("globalkey", {"keyword": seed, "lang": "en"}),
+                ("topkeys", {"keyword": seed, "location": "GB", "lang": "en"}),
+            ]:
+                result = fetch_keywords_from_api(endpoint, params)
+                results.extend(result)
+                time.sleep(base_delay)  # Safe delay between each individual request
 
-            # Tag category + seed
+            # Tag metadata
             for item in results:
                 item["seed_keyword"] = seed
                 item["category"] = category
@@ -197,7 +202,10 @@ def fetch_data_for_seed_with_backoff(seed, category, max_retries=6, base_delay=2
 
         except Exception as e:
             print(f"⚠️ Error on attempt {attempt + 1} for '{seed}': {e}")
-            time.sleep(base_delay * (attempt + 1))  # Exponential backoff
+            # Increase wait only if there's an error (exponential backoff)
+            backoff_delay = base_delay * (attempt + 1) + random.uniform(0.5, 1.5)
+            print(f"🔁 Waiting {backoff_delay:.2f}s before retrying...")
+            time.sleep(backoff_delay)
 
     print(f"❌ Failed all {max_retries} attempts for '{seed}'")
     return []
