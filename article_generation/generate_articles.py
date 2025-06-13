@@ -176,16 +176,19 @@ def main():
     for keyword in keywords:
         print(f"Processing keyword: {keyword}")
         article = generate_article(keyword)
+
+        article_data = None  # Always initialize
         try:
             if article.strip().startswith("```json"):
                 article = re.sub(r"^```json\s*|\s*```$", "", article.strip())
-            
+
             article_data = json.loads(article)
             print("Title:", article_data["title"])
             print("Slug:", article_data["slug"])
             print("Preview:", article_data["meta_description"])
-        except json.JSONDecodeError as e:
-            print(f"GPT returned invalid JSON. You may want to retry or clean it up. {article}")
+        except json.JSONDecodeError:
+            print(f"GPT returned invalid JSON. You may want to retry or clean it up.\n{article}")
+
         if article_data:
             response = publish_to_wordpress(
                 title=article_data["title"],
@@ -199,7 +202,6 @@ def main():
                 print(f"Failed to publish article for keyword: {keyword}")
         else:
             print(f"Failed to generate article for keyword: {keyword}")
-
 
 def load_env_from_dotenv():
     # Define the path to the secrets file
