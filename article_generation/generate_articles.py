@@ -74,7 +74,7 @@ def build_openai_request(prompt, max_tokens):
             {
                 "role": "system",
                 "content": (
-                    "IMPORTANT: you like to write long, indepth, conversational, and detailed articles, going into depth, but summarising and conluding in the final paragraph. "
+                    "IMPORTANT: you like to write long, indepth, conversational, and detailed articles, going into depth, but summarising and concluding in the final paragraph. "
                     "You are an experienced SEO content writer for a niche blog. "
                     "Your job is to write compelling, keyword-optimized articles that rank well on Google, "
                     "engage human readers, and follow best SEO practices without keyword stuffing."
@@ -89,7 +89,7 @@ def build_openai_request(prompt, max_tokens):
         "temperature": 0.7,
         "top_p": 1.0,
         "frequency_penalty": 0.2,
-        "presence_penalty": 0.1,]
+        "presence_penalty": 0.1,
         "stop": ["###", "\n\n##"]  # helps catch overly long digressions
     }
 
