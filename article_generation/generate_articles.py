@@ -67,8 +67,8 @@ def build_prompt(keyword):
         "- Output must be a single valid JSON object. DO NOT include Markdown or notes outside the JSON.\n"
         "- Wrap the **entire response** in a **single valid JSON object** — ensure keys are double-quoted, and escape all embedded quotes within HTML correctly.\n"
         "=== FINAL CHECK ===\nBefore finishing, do a final pass to ensure:\n"
-        "1. The article body contains **at least 1,800 words** (excluding meta or JSON data).\n
-        "2. All required JSON keys are present and correctly filled:\n   - \"title\"\n   - \"meta_description\"\n   - \"slug\"\n   - \"excerpt\"\n   - \"content\"\n
+        "1. The article body contains **at least 1,800 words** (excluding meta or JSON data).\n"
+        "2. All required JSON keys are present and correctly filled:\n   - \"title\"\n   - \"meta_description\"\n   - \"slug\"\n   - \"excerpt\"\n   - \"content\"\n"
         "3. The <script type=\\\"application/ld+json\\\"> block contains valid, properly formatted **JSON-LD Article schema**.\n"
 
     )
