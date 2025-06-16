@@ -48,7 +48,8 @@ def build_prompt(keyword):
         "  • Pros, cons, comparisons, and counterpoints\n"
         "  • References to real tools, platforms, events, or concepts\n"
         "- Structure the post logically using <h2> and <h3> headers. Use <ul>, <ol>, and <p> for clarity.\n"
-        "- DO NOT stop until the article hits a **minimum** of 1,800 words. If needed, keep expanding thoughtfully until that’s achieved.\n"
+        "- Do not conclude the article until it has exceeded **1,800 words of actual body content** (excluding JSON/meta). Expand with original insights, use of examples, comparisons, and expert analysis. Keep going until you meet that threshold naturally and meaningfully \n"
+        "- Example format:\\n{\\n  \\\"title\\\": \\\"Why the Steam Deck Changed Portable Gaming\\\",\\n  \\\"meta_description\\\": \\\"Explore how the Steam Deck revolutionised handheld gaming with PC power, portability, and Linux magic.\\\",\\n  \\\"slug\\\": \\\"steam-deck-portable-gaming\\\",\\n  \\\"excerpt\\\": \\\"The Steam Deck isn’t just a gaming console — it’s a statement about the future of portable tech.\\\",\\n  \\\"content\\\": \\\"<h2>Introduction</h2><p>Gaming on the go has always been a dream...</p>...<script type=\\\\\\\"application/ld+json\\\\\\\">{ ... }</script>\\\"\\n}\\n"
         "=== SEO + STRUCTURE ===\n"
         "- Include these JSON keys:\n"
         "    • \"title\"\n"
@@ -64,6 +65,12 @@ def build_prompt(keyword):
         "- Avoid repeating phrases, overuse of transition words, or empty conclusions.\n"
         "- Focus on delivering original, **thought-provoking** content.\n"
         "- Output must be a single valid JSON object. DO NOT include Markdown or notes outside the JSON.\n"
+        "- Wrap the **entire response** in a **single valid JSON object** — ensure keys are double-quoted, and escape all embedded quotes within HTML correctly.\n"
+        "=== FINAL CHECK ===\nBefore finishing, do a final pass to ensure:\n"
+        "1. The article body contains **at least 1,800 words** (excluding meta or JSON data).\n
+        "2. All required JSON keys are present and correctly filled:\n   - \"title\"\n   - \"meta_description\"\n   - \"slug\"\n   - \"excerpt\"\n   - \"content\"\n
+        "3. The <script type=\\\"application/ld+json\\\"> block contains valid, properly formatted **JSON-LD Article schema**.\n"
+
     )
 
 
@@ -75,7 +82,7 @@ def build_openai_request(prompt, max_tokens):
                 "role": "system",
                 "content": (
                     "IMPORTANT: you like to write long, indepth, conversational, and detailed articles, going into depth, but summarising and concluding in the final paragraph. "
-                    "You are an experienced SEO content writer for a niche blog. "
+                    "You are a senior SEO content strategist and expert writer. Your job is to create engaging, long-form content that follows best practices for organic ranking (including keyword placement, schema, and formatting), while sounding deeply human and insightful. Avoid clichés, fluff, or summarised content unless in the conclusion. The tone should match top-tier blogs like The Verge, Wired, or Medium’s best tech pieces. "
                     "Your job is to write compelling, keyword-optimized articles that rank well on Google, "
                     "engage human readers, and follow best SEO practices without keyword stuffing."
                 )
@@ -89,8 +96,7 @@ def build_openai_request(prompt, max_tokens):
         "temperature": 0.7,
         "top_p": 1.0,
         "frequency_penalty": 0.2,
-        "presence_penalty": 0.1,
-        "stop": ["###", "\n\n##"]  # helps catch overly long digressions
+        "presence_penalty": 0.1
     }
 
 
